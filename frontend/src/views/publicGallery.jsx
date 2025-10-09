@@ -13,6 +13,8 @@ const PublicGallery = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
   const navigate = useNavigate();
 
   const categories = [
@@ -35,7 +37,6 @@ const PublicGallery = () => {
     "traditional-wear": "🎎 Traditional Wear",
   };
 
-  // Load projects whenever search or category changes
   useEffect(() => {
     loadPublicProjects();
   }, [searchTerm, selectedCategory]);
@@ -44,7 +45,6 @@ const PublicGallery = () => {
     try {
       setIsLoading(true);
 
-      // Build query parameters
       const params = new URLSearchParams();
       if (searchTerm) params.append("search", searchTerm);
       if (selectedCategory !== "all")
@@ -57,8 +57,6 @@ const PublicGallery = () => {
         ? `${SummaryApi.getPublicProjects.url}?${queryString}`
         : SummaryApi.getPublicProjects.url;
 
-      console.log("🌐 Fetching from:", url);
-
       const response = await fetch(url, {
         method: SummaryApi.getPublicProjects.method,
         headers: {
@@ -68,19 +66,18 @@ const PublicGallery = () => {
 
       const data = await response.json();
 
-      console.log("📦 API Response:", data);
-
       if (data.success) {
         setProjects(data.data.projects || []);
       } else {
         throw new Error(data.message || "Failed to load projects");
       }
     } catch (error) {
-      console.error("❌ Error loading public projects:", error);
+      console.error("Error loading public projects:", error);
       toast.error("Failed to load projects gallery");
       setProjects([]);
     } finally {
       setIsLoading(false);
+      setIsInitialLoad(false);
     }
   };
 
@@ -123,7 +120,7 @@ const PublicGallery = () => {
     const statusConfig = {
       pending: {
         color: "bg-amber-100 text-amber-800 border border-amber-200",
-        text: "⏳ Pending Review",
+        text: "⏳ Pending",
       },
       approved: {
         color: "bg-emerald-100 text-emerald-800 border border-emerald-200",
@@ -138,19 +135,36 @@ const PublicGallery = () => {
     const config = statusConfig[status] || statusConfig.pending;
     return (
       <span
-        className={`px-4 py-2 rounded-full text-sm font-semibold ${config.color}`}
+        className={`px-3 py-1 rounded-full text-xs font-semibold ${config.color}`}
       >
         {config.text}
       </span>
     );
   };
 
-  if (isLoading) {
+  const heroBackgroundImages = [
+    "https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80",
+    "https://images.unsplash.com/photo-1558769132-cb1aea1a8eb1?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+    "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+    "https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setHeroImageIndex((prev) => (prev + 1) % heroBackgroundImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (isInitialLoad) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 flex items-center justify-center">
         <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mb-4"></div>
-          <p className="text-gray-600 font-medium text-lg">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-20 w-20 border-4 border-purple-200"></div>
+            <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-purple-600 absolute top-0"></div>
+          </div>
+          <p className="text-gray-700 font-semibold text-lg mt-6 animate-pulse">
             Loading creative gallery...
           </p>
         </div>
@@ -160,25 +174,20 @@ const PublicGallery = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50">
-      {/* Toast Container */}
       <ToastContainer
         position="top-right"
-        autoClose={5000}
+        autoClose={3000}
         hideProgressBar={false}
-        newestOnTop={false}
+        newestOnTop
         closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
         pauseOnHover
       />
 
-      {/* Project View Dialog */}
+      {/* Project Dialog */}
       {showProjectDialog && selectedProject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden animate-scaleIn">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
               <div>
                 <h2 className="text-3xl font-bold text-gray-900">
                   {selectedProject.title}
@@ -191,7 +200,7 @@ const PublicGallery = () => {
                 {getStatusBadge(selectedProject.status)}
                 <button
                   onClick={() => setShowProjectDialog(false)}
-                  className="p-3 hover:bg-gray-100 rounded-xl transition-colors duration-200"
+                  className="p-3 hover:bg-white rounded-xl transition-all duration-200 hover:rotate-90"
                 >
                   <svg
                     className="w-6 h-6 text-gray-500"
@@ -210,10 +219,9 @@ const PublicGallery = () => {
               </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row h-[calc(90vh-80px)]">
-              {/* Image Gallery */}
+            <div className="flex flex-col lg:flex-row h-[calc(90vh-100px)]">
               <div className="lg:w-1/2 p-6 bg-gray-50">
-                <div className="relative rounded-2xl overflow-hidden bg-white shadow-lg">
+                <div className="relative rounded-2xl overflow-hidden bg-white shadow-xl">
                   {selectedProject.images.length > 0 ? (
                     <>
                       <img
@@ -221,13 +229,11 @@ const PublicGallery = () => {
                         alt={selectedProject.title}
                         className="w-full h-96 object-cover"
                       />
-
-                      {/* Image Navigation */}
                       {selectedProject.images.length > 1 && (
                         <>
                           <button
                             onClick={handlePreviousImage}
-                            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white transition-colors duration-200"
+                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white hover:scale-110 transition-all duration-200"
                           >
                             <svg
                               className="w-5 h-5 text-gray-700"
@@ -238,14 +244,14 @@ const PublicGallery = () => {
                               <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                strokeWidth={2}
+                                strokeWidth={2.5}
                                 d="M15 19l-7-7 7-7"
                               />
                             </svg>
                           </button>
                           <button
                             onClick={handleNextImage}
-                            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white transition-colors duration-200"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white hover:scale-110 transition-all duration-200"
                           >
                             <svg
                               className="w-5 h-5 text-gray-700"
@@ -256,14 +262,12 @@ const PublicGallery = () => {
                               <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
-                                strokeWidth={2}
+                                strokeWidth={2.5}
                                 d="M9 5l7 7-7 7"
                               />
                             </svg>
                           </button>
-
-                          {/* Image Counter */}
-                          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-semibold backdrop-blur-sm">
+                          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/80 text-white px-4 py-1.5 rounded-full text-sm font-semibold backdrop-blur-sm">
                             {currentImageIndex + 1} /{" "}
                             {selectedProject.images.length}
                           </div>
@@ -271,86 +275,78 @@ const PublicGallery = () => {
                       )}
                     </>
                   ) : (
-                    <div className="w-full h-96 flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
-                      <div className="text-6xl text-purple-300">🎨</div>
+                    <div className="w-full h-96 flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100">
+                      <div className="text-7xl animate-bounce">🎨</div>
                     </div>
                   )}
                 </div>
 
-                {/* Thumbnail Gallery */}
                 {selectedProject.images.length > 1 && (
-                  <div className="mt-4">
-                    <div className="grid grid-cols-4 gap-2">
-                      {selectedProject.images.map((image, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentImageIndex(index)}
-                          className={`relative rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                            index === currentImageIndex
-                              ? "border-purple-500 ring-2 ring-purple-200"
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}
-                        >
-                          <img
-                            src={image.url}
-                            alt={`Thumbnail ${index + 1}`}
-                            className="w-full h-20 object-cover"
-                          />
-                        </button>
-                      ))}
-                    </div>
+                  <div className="mt-4 grid grid-cols-4 gap-2">
+                    {selectedProject.images.map((image, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentImageIndex(index)}
+                        className={`relative rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+                          index === currentImageIndex
+                            ? "border-purple-500 ring-2 ring-purple-300 scale-105"
+                            : "border-gray-200 hover:border-purple-300 hover:scale-105"
+                        }`}
+                      >
+                        <img
+                          src={image.url}
+                          alt=""
+                          className="w-full h-20 object-cover"
+                        />
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
 
-              {/* Project Details */}
-              <div className="lg:w-1/2 p-6 overflow-y-auto">
-                <div className="space-y-6">
-                  {/* Description */}
-                  <div>
+              <div className="lg:w-1/2 p-6 overflow-y-auto custom-scrollbar">
+                <div className="space-y-5">
+                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-5 border border-purple-100">
                     <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                      <span className="bg-purple-100 text-purple-600 p-2 rounded-lg mr-3">
+                      <span className="bg-purple-500 text-white p-2 rounded-lg mr-3 text-xl">
                         📖
                       </span>
                       Project Description
                     </h3>
-                    <p className="text-gray-700 leading-relaxed bg-gray-50 rounded-xl p-4">
+                    <p className="text-gray-700 leading-relaxed">
                       {selectedProject.description}
                     </p>
                   </div>
 
-                  {/* Materials */}
                   {selectedProject.materials && (
-                    <div>
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-5 border border-green-100">
                       <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                        <span className="bg-green-100 text-green-600 p-2 rounded-lg mr-3">
+                        <span className="bg-green-500 text-white p-2 rounded-lg mr-3 text-xl">
                           🧵
                         </span>
                         Materials Used
                       </h3>
-                      <p className="text-gray-700 bg-gray-50 rounded-xl p-4">
+                      <p className="text-gray-700">
                         {selectedProject.materials}
                       </p>
                     </div>
                   )}
 
-                  {/* Inspiration */}
                   {selectedProject.inspiration && (
-                    <div>
+                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-5 border border-blue-100">
                       <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                        <span className="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">
+                        <span className="bg-blue-500 text-white p-2 rounded-lg mr-3 text-xl">
                           💫
                         </span>
                         Design Inspiration
                       </h3>
-                      <p className="text-gray-700 bg-gray-50 rounded-xl p-4">
+                      <p className="text-gray-700">
                         {selectedProject.inspiration}
                       </p>
                     </div>
                   )}
 
-                  {/* Project Metadata */}
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+                  <div className="grid grid-cols-2 gap-4 bg-gray-50 rounded-2xl p-5">
                     <div>
                       <h4 className="text-sm font-semibold text-gray-500 mb-1">
                         Category
@@ -374,37 +370,20 @@ const PublicGallery = () => {
                         )}
                       </p>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-500 mb-1">
-                        Images
-                      </h4>
-                      <p className="text-gray-900 font-medium">
-                        {selectedProject.images.length}
-                      </p>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-500 mb-1">
-                        Status
-                      </h4>
-                      <div className="inline-block">
-                        {getStatusBadge(selectedProject.status)}
-                      </div>
-                    </div>
                   </div>
 
-                  {/* Student Info */}
                   {selectedProject.student && (
-                    <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-4">
-                      <h4 className="text-sm font-semibold text-gray-500 mb-2">
+                    <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl p-5 border border-purple-200">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">
                         Designer Information
                       </h4>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
                           {selectedProject.student.firstName?.[0]}
                           {selectedProject.student.lastName?.[0]}
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900 text-lg">
+                          <p className="font-semibold text-gray-900 text-lg">
                             {selectedProject.student.firstName}{" "}
                             {selectedProject.student.lastName}
                           </p>
@@ -424,93 +403,117 @@ const PublicGallery = () => {
       )}
 
       {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-sm sticky top-0 z-40">
+      <nav className="bg-white/90 backdrop-blur-lg border-b border-gray-200 shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-4">
-              <div className="flex-shrink-0 flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-xl">F</span>
-                </div>
-                <div>
-                  <span className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                    FashionFlux
-                  </span>
-                  <span className="text-sm text-gray-500 block -mt-1">
-                    KTU Creative Gallery
-                  </span>
-                </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform">
+                <span className="text-white font-bold text-xl">F</span>
+              </div>
+              <div>
+                <span className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                  FashionFlux
+                </span>
+                <span className="text-sm text-gray-500 block -mt-1">
+                  KTU Creative Gallery
+                </span>
               </div>
             </div>
-
-            <div className="flex items-center space-x-6">
-              <button
-                onClick={handleBackToLogin}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-xl hover:shadow-xl transition-all duration-300 font-semibold hover:scale-105 transform"
-              >
-                🎓 Student Portal
-              </button>
-            </div>
+            <button
+              onClick={handleBackToLogin}
+              className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-xl hover:shadow-xl transition-all duration-300 font-semibold hover:scale-105 transform"
+            >
+              🎓 Student Portal
+            </button>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-r from-purple-600 via-blue-600 to-purple-700 text-white py-20">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
+      {/* Hero */}
+      <div
+        className="relative text-white py-40 overflow-hidden"
+        style={{ height: "600px" }}
+      >
+        {/* Background Images with Crossfade */}
+        {heroBackgroundImages.map((image, index) => (
+          <div
+            key={index}
+            className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
+            style={{
+              backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.4)), url(${image})`,
+              opacity: index === heroImageIndex ? 1 : 0,
+            }}
+          />
+        ))}
+
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/70 via-blue-900/60 to-purple-900/70"></div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center h-full flex flex-col justify-center">
+          <h1 className="text-6xl md:text-7xl font-bold mb-6 leading-tight animate-fadeIn">
             Creative Showcase
           </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl mb-10 max-w-3xl mx-auto leading-relaxed font-light animate-fadeIn">
             Discover extraordinary fashion talent from KTU's brightest design
             students
           </p>
-          <div className="flex items-center justify-center space-x-4 text-lg">
-            <div className="flex items-center space-x-2">
-              <span>🎨</span>
-              <span>{projects.length} Projects</span>
+          <div className="flex items-center justify-center space-x-6 text-lg animate-fadeIn">
+            <div className="flex items-center space-x-3 bg-white/20 backdrop-blur-md px-5 py-3 rounded-full hover:bg-white/30 transition-all">
+              <span className="text-2xl">🎨</span>
+              <span className="font-semibold">{projects.length} Projects</span>
             </div>
-            <div className="w-1 h-1 bg-white/50 rounded-full"></div>
-            <div className="flex items-center space-x-2">
-              <span>🌟</span>
-              <span>Student Portfolio</span>
+            <div className="flex items-center space-x-3 bg-white/20 backdrop-blur-md px-5 py-3 rounded-full hover:bg-white/30 transition-all">
+              <span className="text-2xl">🌟</span>
+              <span className="font-semibold">Student Portfolio</span>
             </div>
+          </div>
+
+          {/* Image Indicators */}
+          <div className="flex justify-center space-x-2 mt-8">
+            {heroBackgroundImages.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setHeroImageIndex(index)}
+                className={`transition-all duration-300 ${
+                  index === heroImageIndex
+                    ? "w-12 h-2 bg-white rounded-full"
+                    : "w-2 h-2 bg-white/50 rounded-full hover:bg-white/75"
+                }`}
+              />
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Filters and Search */}
+      {/* Filters */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-lg p-6 mb-8 border border-white/60">
+        <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-6 mb-8 border border-gray-100">
           <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
-            {/* Search */}
             <div className="flex-1 w-full lg:max-w-md">
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search projects, designers, or keywords..."
+                  placeholder="Search projects, designers..."
                   value={searchTerm}
                   onChange={handleSearchChange}
-                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white shadow-sm"
                 />
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl">
                   🔍
-                </div>
+                </span>
               </div>
             </div>
 
-            {/* Category Filter */}
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 justify-center">
               {categories.map((category) => (
                 <button
                   key={category}
                   onClick={() => handleCategoryChange(category)}
-                  className={`px-4 py-2 rounded-xl font-semibold transition-all duration-200 hover:scale-105 transform ${
+                  disabled={isLoading}
+                  className={`px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 hover:scale-105 transform shadow-sm ${
                     selectedCategory === category
-                      ? "bg-purple-600 text-white shadow-lg"
-                      : "bg-white text-gray-700 border border-gray-200 hover:border-purple-300"
-                  }`}
+                      ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg"
+                      : "bg-white text-gray-700 border-2 border-gray-200 hover:border-purple-300"
+                  } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   {categoryLabels[category]}
                 </button>
@@ -518,222 +521,192 @@ const PublicGallery = () => {
             </div>
           </div>
 
-          {/* Show active filters */}
           {(searchTerm || selectedCategory !== "all") && (
-            <div className="mt-4 flex items-center justify-between">
-              <div className="text-sm text-gray-600">
-                Showing results for:
-                {searchTerm && ` "${searchTerm}"`}
+            <div className="mt-4 flex items-center justify-between bg-purple-50 rounded-lg p-3">
+              <div className="text-sm text-gray-700 font-medium">
+                🔎 Filtering: {searchTerm && `"${searchTerm}"`}
                 {searchTerm && selectedCategory !== "all" && " in "}
                 {selectedCategory !== "all" && categoryLabels[selectedCategory]}
               </div>
               <button
                 onClick={clearFilters}
-                className="text-purple-600 hover:text-purple-700 font-medium text-sm"
+                className="text-purple-600 hover:text-purple-700 font-semibold text-sm hover:underline"
               >
-                Clear all filters
+                Clear filters
               </button>
             </div>
           )}
         </div>
 
-        {/* Projects Grid */}
-        {projects.length === 0 ? (
-          <div className="text-center py-20 bg-white/60 rounded-3xl border-2 border-dashed border-gray-300">
-            <div className="text-8xl mb-6">🔍</div>
-            <h3 className="text-3xl font-bold text-gray-900 mb-4">
-              No Projects Found
-            </h3>
-            <p className="text-gray-600 text-xl mb-8 max-w-md mx-auto">
-              {searchTerm || selectedCategory !== "all"
-                ? "Try adjusting your search or filters"
-                : "No projects available in the gallery yet"}
-            </p>
-            {(searchTerm || selectedCategory !== "all") && (
-              <button
-                onClick={clearFilters}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all duration-300 font-semibold text-lg hover:scale-105 transform"
-              >
-                🔄 Clear Filters
-              </button>
-            )}
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-12">
-              {projects.map((project, index) => (
-                <div
-                  key={project._id || project.id || `project-${index}`}
-                  className="group cursor-pointer"
-                  onClick={() => handleViewProject(project)}
+        {/* Content Area - Fixed Height */}
+        <div className="min-h-[600px]">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-32 bg-white/60 rounded-3xl border-2 border-dashed border-gray-300">
+              <div className="relative mb-6">
+                <div className="animate-spin rounded-full h-24 w-24 border-4 border-purple-200"></div>
+                <div className="animate-spin rounded-full h-24 w-24 border-t-4 border-purple-600 absolute top-0"></div>
+              </div>
+              <p className="text-gray-600 font-semibold text-lg animate-pulse">
+                Loading projects...
+              </p>
+            </div>
+          ) : projects.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-32 bg-white/60 rounded-3xl border-2 border-dashed border-gray-300">
+              <div className="text-8xl mb-6 animate-bounce">🔍</div>
+              <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                No Projects Found
+              </h3>
+              <p className="text-gray-600 text-xl mb-8 max-w-md mx-auto text-center">
+                {searchTerm || selectedCategory !== "all"
+                  ? "Try adjusting your search or filters"
+                  : "No projects available in the gallery yet"}
+              </p>
+              {(searchTerm || selectedCategory !== "all") && (
+                <button
+                  onClick={clearFilters}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all duration-300 font-semibold text-lg hover:scale-105 transform"
                 >
-                  <div className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-purple-200 hover:scale-105 transform">
-                    {/* Image Container */}
-                    <div className="relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
-                      {project.images.length > 0 ? (
-                        <img
-                          src={project.images[0].url}
-                          alt={project.title}
-                          className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700"
-                        />
-                      ) : (
-                        <div className="w-full h-80 flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
-                          <div className="text-6xl text-purple-300">🎨</div>
+                  🔄 Clear Filters
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-12">
+                {projects.map((project, index) => (
+                  <div
+                    key={project._id || `project-${index}`}
+                    onClick={() => handleViewProject(project)}
+                    className="group cursor-pointer animate-fadeIn"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-gray-100 hover:border-purple-300 hover:scale-105 transform">
+                      <div className="relative overflow-hidden">
+                        {project.images.length > 0 ? (
+                          <img
+                            src={project.images[0].url}
+                            alt={project.title}
+                            className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-700"
+                          />
+                        ) : (
+                          <div className="w-full h-80 flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100">
+                            <div className="text-6xl animate-pulse">🎨</div>
+                          </div>
+                        )}
+
+                        {project.images.length > 1 && (
+                          <div className="absolute top-4 left-4 bg-black/80 text-white px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm">
+                            📸 {project.images.length}
+                          </div>
+                        )}
+
+                        <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm text-purple-700 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg">
+                          {categoryLabels[project.category].replace(
+                            /[^\w\s]/g,
+                            ""
+                          )}
                         </div>
-                      )}
 
-                      {/* Image Count Badge */}
-                      {project.images.length > 1 && (
-                        <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-sm">
-                          📸 {project.images.length}
+                        <div className="absolute bottom-4 left-4">
+                          {getStatusBadge(project.status)}
                         </div>
-                      )}
 
-                      {/* Category Badge */}
-                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-purple-700 px-3 py-1.5 rounded-full text-xs font-semibold">
-                        {categoryLabels[project.category]}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                        <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">
+                          <button className="w-full bg-white/95 backdrop-blur-sm text-gray-800 py-3 px-4 rounded-xl text-sm font-bold hover:bg-white transition-colors shadow-lg">
+                            👁️ View Details
+                          </button>
+                        </div>
                       </div>
 
-                      {/* Status Badge */}
-                      <div className="absolute top-4 left-4">
-                        {getStatusBadge(project.status)}
-                      </div>
-
-                      {/* Gradient Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                      {/* Hover Action */}
-                      <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                        <button className="w-full bg-white/90 backdrop-blur-sm text-gray-800 py-3 px-4 rounded-xl text-sm font-semibold hover:bg-white transition-colors duration-200">
-                          👁️ View Project Details
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-6">
-                      <div className="mb-4">
-                        <h3 className="text-xl font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-purple-700 transition-colors duration-200">
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-purple-700 transition-colors mb-2">
                           {project.title}
                         </h3>
-                        <p className="text-gray-600 mt-2 line-clamp-2 leading-relaxed text-sm">
+                        <p className="text-gray-600 line-clamp-2 text-sm leading-relaxed mb-4">
                           {project.description}
                         </p>
-                      </div>
 
-                      {/* Materials & Inspiration Preview */}
-                      {(project.materials || project.inspiration) && (
-                        <div className="mb-4 space-y-2">
-                          {project.materials && (
-                            <div className="flex items-start space-x-2 text-xs text-gray-500">
-                              <span className="text-purple-500 mt-0.5">🧵</span>
-                              <span className="line-clamp-1">
-                                {project.materials}
-                              </span>
+                        {project.student && (
+                          <div className="flex items-center space-x-3 pt-4 border-t border-gray-100">
+                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
+                              {project.student.firstName?.[0]}
+                              {project.student.lastName?.[0]}
                             </div>
-                          )}
-                          {project.inspiration && (
-                            <div className="flex items-start space-x-2 text-xs text-gray-500">
-                              <span className="text-blue-500 mt-0.5">💫</span>
-                              <span className="line-clamp-1">
-                                {project.inspiration}
-                              </span>
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">
+                                {project.student.firstName}{" "}
+                                {project.student.lastName}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {project.student.department}
+                              </p>
                             </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Designer Info */}
-                      {project.student && (
-                        <div className="flex items-center space-x-3 pt-4 border-t border-gray-100">
-                          <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                            {project.student.firstName?.[0]}
-                            {project.student.lastName?.[0]}
                           </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {project.student.firstName}{" "}
-                              {project.student.lastName}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {project.student.department}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Footer */}
-                      <div className="flex items-center justify-between text-sm text-gray-500 border-t border-gray-100 pt-4">
-                        <span className="font-medium">
-                          {new Date(project.createdAt).toLocaleDateString(
-                            "en-US",
-                            {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            }
-                          )}
-                        </span>
-                        <div className="flex items-center space-x-1 text-yellow-500">
-                          {"★".repeat(3)}
-                          <span className="text-gray-400 text-xs">★</span>
-                          <span className="text-gray-400 text-xs">★</span>
-                        </div>
+                        )}
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            {/* Stats */}
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-8 border border-purple-100">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                <div>
-                  <div className="text-3xl font-bold text-purple-600">
-                    {projects.length}
+              {/* Stats */}
+              <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl p-8 border border-purple-200 shadow-lg">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                  <div className="bg-white/50 rounded-xl p-4">
+                    <div className="text-4xl font-bold text-purple-600 mb-1">
+                      {projects.length}
+                    </div>
+                    <div className="text-sm text-gray-700 font-medium">
+                      Total Projects
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">Total Projects</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-green-600">
-                    {new Set(projects.map((p) => p.student?._id)).size}
+                  <div className="bg-white/50 rounded-xl p-4">
+                    <div className="text-4xl font-bold text-green-600 mb-1">
+                      {new Set(projects.map((p) => p.student?._id)).size}
+                    </div>
+                    <div className="text-sm text-gray-700 font-medium">
+                      Creative Designers
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">
-                    Creative Designers
+                  <div className="bg-white/50 rounded-xl p-4">
+                    <div className="text-4xl font-bold text-blue-600 mb-1">
+                      {projects.reduce(
+                        (total, project) =>
+                          total + (project.images?.length || 0),
+                        0
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-700 font-medium">
+                      Total Images
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-blue-600">
-                    {projects.reduce(
-                      (total, project) => total + (project.images?.length || 0),
-                      0
-                    )}
+                  <div className="bg-white/50 rounded-xl p-4">
+                    <div className="text-4xl font-bold text-orange-600 mb-1">
+                      {categories.length - 1}
+                    </div>
+                    <div className="text-sm text-gray-700 font-medium">
+                      Categories
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">Total Creations</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-orange-600">
-                    {categories.length - 1}
-                  </div>
-                  <div className="text-sm text-gray-600">Design Categories</div>
                 </div>
               </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <footer className="bg-gray-900 text-white py-12 mt-12">
+        <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">F</span>
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+              <span className="font-bold text-xl">F</span>
             </div>
             <span className="text-2xl font-bold">FashionFlux</span>
           </div>
-          <p className="text-gray-400 mb-4">
+          <p className="text-gray-400 mb-2">
             KTU Fashion Design Portfolio Platform
           </p>
           <p className="text-gray-500 text-sm">
@@ -741,6 +714,37 @@ const PublicGallery = () => {
           </p>
         </div>
       </footer>
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.6s ease-out forwards;
+        }
+        .animate-scaleIn {
+          animation: scaleIn 0.3s ease-out forwards;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(to bottom, #9333ea, #3b82f6);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to bottom, #7e22ce, #2563eb);
+        }
+      `}</style>
     </div>
   );
 };

@@ -370,15 +370,15 @@ const StudentDashboard = () => {
       />
       {/* Navigation */}
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600  rounded-xl flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-lg">F</span>
                 </div>
                 <div>
-                  <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-purple-600  bg-clip-text text-transparent">
                     FashionFlux
                   </span>
                   <span className="text-xs text-gray-500 block -mt-1">
@@ -438,7 +438,7 @@ const StudentDashboard = () => {
               </p>
             </div>
             <div className="text-right">
-              <div className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-4 rounded-2xl shadow-lg">
+              <div className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-6 py-4 rounded-2xl shadow-lg text-center flex flex-col items-center justify-center">
                 <p className="text-sm opacity-90">Student ID</p>
                 <p className="font-bold text-xl">{user.studentId}</p>
                 <p className="text-xs opacity-80 mt-1">
@@ -625,7 +625,7 @@ const StudentDashboard = () => {
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-12 py-4 rounded-xl hover:shadow-2xl transition-all duration-300 font-semibold text-lg disabled:opacity-50 hover:scale-105 transform"
+                      className="bg-purple-600 text-white px-12 py-4 rounded-xl hover:shadow-2xl transition-all duration-300 font-semibold text-lg disabled:opacity-50 hover:scale-105 transform"
                     >
                       {isLoading ? (
                         <div className="flex items-center space-x-2">
@@ -870,7 +870,7 @@ const StudentDashboard = () => {
             {activeTab === "projects" && (
               <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-12">
-                  <h2 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-purple-600 bg-clip-text text-transparent mb-4">
                     My Creative Portfolio
                   </h2>
                   <p className="text-gray-600 text-lg max-w-2xl mx-auto">
