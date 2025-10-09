@@ -64,6 +64,23 @@ const SummaryApi = {
     url: `${backendDomain}/api/admin/statistics/analytics`,
     method: "GET",
   },
+
+  getPendingProjects: {
+    url: `${backendDomain}/api/admin/pending-projects`,
+    method: "GET",
+  },
+  getProjectStatistics: {
+    url: `${backendDomain}/api/admin/project-stats`,
+    method: "GET",
+  },
+  approveProject: {
+    url: `${backendDomain}/api/admin/approve-project`,
+    method: "PATCH",
+  },
+  rejectProject: {
+    url: `${backendDomain}/api/admin/reject-project`,
+    method: "PATCH",
+  },
 };
 
 export default SummaryApi;

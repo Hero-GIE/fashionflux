@@ -14,10 +14,17 @@ const AdminDashboard = () => {
   const [rejectedProjects, setRejectedProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const [showProjectModal, setShowProjectModal] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [stats, setStats] = useState({
     totalPending: 0,
     totalApproved: 0,
     totalStudents: 0,
+  });
+
+  // Add this projectStats state - you're missing this
+  const [projectStats, setProjectStats] = useState({
+    totalPending: 0,
+    totalApproved: 0,
     totalRejected: 0,
     totalProjects: 0,
   });
@@ -25,6 +32,39 @@ const AdminDashboard = () => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const [adminData, setAdminData] = useState(null);
+  const goToNextImage = () => {
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === selectedProject.images.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const goToPreviousImage = () => {
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? selectedProject.images.length - 1 : prevIndex - 1
+    );
+  };
+
+  // Add keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!showProjectModal || !selectedProject) return;
+
+      if (e.key === "ArrowLeft") {
+        goToPreviousImage();
+      } else if (e.key === "ArrowRight") {
+        goToNextImage();
+      } else if (e.key === "Escape") {
+        setShowProjectModal(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showProjectModal, selectedProject, currentImageIndex]);
+  // Reset image index when modal opens/closes or when project changes
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [selectedProject, showProjectModal]);
 
   useEffect(() => {
     loadAdminData();
@@ -257,13 +297,12 @@ const AdminDashboard = () => {
 
       const data = await response.json();
       if (data.success) {
-        setProjectStats(data.data.statistics);
+        setProjectStats(data.data.statistics); // This should now work
       }
     } catch (error) {
       console.error("Error loading project stats:", error);
     }
   };
-
   const approveProject = async (projectId) => {
     try {
       const token = localStorage.getItem("authToken");
@@ -910,23 +949,98 @@ const AdminDashboard = () => {
                           </button>
                         </div>
 
-                        {/* Image Gallery */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                          {selectedProject.images.map((image, index) => (
-                            <div
-                              key={index}
-                              className="rounded-2xl overflow-hidden"
-                            >
-                              <img
-                                src={image.url}
-                                alt={`${selectedProject.title} - Image ${
-                                  index + 1
-                                }`}
-                                className="w-full h-64 object-cover"
-                              />
+                        {/* Image Carousel */}
+                        {selectedProject.images.length > 0 && (
+                          <div className="relative mb-6">
+                            {/* Main Image */}
+                            <div className="relative h-80 bg-gray-100 rounded-2xl overflow-hidden">
+                              {selectedProject.images.map((image, index) => (
+                                <img
+                                  key={index}
+                                  src={image.url}
+                                  alt={`${selectedProject.title} - Image ${
+                                    index + 1
+                                  }`}
+                                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-in-out ${
+                                    currentImageIndex === index
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  }`}
+                                />
+                              ))}
                             </div>
-                          ))}
-                        </div>
+
+                            {/* Navigation Arrows - Only show if multiple images */}
+                            {selectedProject.images.length > 1 && (
+                              <>
+                                {/* Previous Button */}
+                                <button
+                                  onClick={goToPreviousImage}
+                                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M15 19l-7-7 7-7"
+                                    />
+                                  </svg>
+                                </button>
+
+                                {/* Next Button */}
+                                <button
+                                  onClick={goToNextImage}
+                                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 backdrop-blur-sm"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M9 5l7 7-7 7"
+                                    />
+                                  </svg>
+                                </button>
+                              </>
+                            )}
+
+                            {/* Image Counter */}
+                            {selectedProject.images.length > 1 && (
+                              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
+                                {currentImageIndex + 1} /{" "}
+                                {selectedProject.images.length}
+                              </div>
+                            )}
+
+                            {/* Thumbnail Navigation */}
+                            {selectedProject.images.length > 1 && (
+                              <div className="flex justify-center space-x-2 mt-4">
+                                {selectedProject.images.map((_, index) => (
+                                  <button
+                                    key={index}
+                                    onClick={() => setCurrentImageIndex(index)}
+                                    className={`w-3 h-3 rounded-full transition-all duration-200 ${
+                                      currentImageIndex === index
+                                        ? "bg-purple-600 scale-125"
+                                        : "bg-gray-300 hover:bg-gray-400"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         {/* Project Details */}
                         <div className="space-y-4">

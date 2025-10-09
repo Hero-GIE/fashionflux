@@ -26,6 +26,10 @@ const {
   getProject,
   getAllProjects,
   getProjectCategories,
+  rejectProject,
+  approveProject,
+  getProjectStatistics,
+  getPendingProjects,
 } = require("../controllers/student/projectController");
 const upload = require("../middleware/upload");
 const {
@@ -87,6 +91,35 @@ router.get(
   protect,
   authorize("admin"),
   getStudentAnalytics
+);
+
+// ADD THESE NEW ADMIN PROJECT ROUTES
+router.get(
+  "/admin/pending-projects",
+  protect,
+  authorize("admin"),
+  getPendingProjects
+);
+
+router.get(
+  "/admin/project-stats",
+  protect,
+  authorize("admin"),
+  getProjectStatistics
+);
+
+router.patch(
+  "/admin/approve-project",
+  protect,
+  authorize("admin"),
+  approveProject
+);
+
+router.patch(
+  "/admin/reject-project",
+  protect,
+  authorize("admin"),
+  rejectProject
 );
 
 module.exports = router;
