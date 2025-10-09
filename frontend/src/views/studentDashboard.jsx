@@ -13,6 +13,7 @@ const StudentDashboard = () => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [profileData, setProfileData] = useState({
     bio: "",
     skills: "",
@@ -34,6 +35,33 @@ const StudentDashboard = () => {
     inspiration: "",
     images: [],
   });
+  const [copiedLink, setCopiedLink] = useState("");
+
+  // Add this function to handle copying links
+  const copyToClipboard = (text, linkType) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedLink(linkType);
+      setTimeout(() => setCopiedLink(""), 2000);
+    });
+  };
+  // Add this function to handle dropdown toggle
+  const toggleProfileDropdown = () => {
+    setShowProfileDropdown(!showProfileDropdown);
+  };
+
+  // Add this useEffect near other useEffect declarations
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showProfileDropdown && !event.target.closest(".relative")) {
+        setShowProfileDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showProfileDropdown]);
 
   // Get auth token from localStorage
   const getAuthToken = () => {
@@ -368,17 +396,19 @@ const StudentDashboard = () => {
           setSelectedProject(null);
         }}
       />
+
       {/* Navigation */}
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-sm sticky top-0 z-50">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
+            {/* left side - Logo */}
             <div className="flex items-center">
               <div className="flex-shrink-0 flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600  rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-lg">F</span>
                 </div>
                 <div>
-                  <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-purple-600  bg-clip-text text-transparent">
+                  <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-purple-600 bg-clip-text text-transparent">
                     FashionFlux
                   </span>
                   <span className="text-xs text-gray-500 block -mt-1">
@@ -387,19 +417,343 @@ const StudentDashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-3 bg-white/60 rounded-lg px-4 py-2 border border-gray-200/60">
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                  {user.firstName?.[0]}
-                  {user.lastName?.[0]}
+
+            {/* right side - User profile and logout */}
+            <div className="flex items-center space-x-4">
+              {/* User profile dropdown */}
+              <div className="relative">
+                <div
+                  className="flex items-center space-x-3 bg-white/60 rounded-lg px-4 py-2 border border-gray-200/60 cursor-pointer hover:bg-white/80 transition-all duration-200"
+                  onClick={toggleProfileDropdown}
+                >
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    {user.firstName?.[0]}
+                    {user.lastName?.[0]}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      Welcome, {user.firstName}!
+                    </p>
+                  </div>
+                  <svg
+                    className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
+                      showProfileDropdown ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    Welcome, {user.firstName}!
-                  </p>
-                  <p className="text-xs text-gray-500">{user.studentId}</p>
-                </div>
+
+                {/* Dropdown Menu */}
+                {showProfileDropdown && (
+                  <div className="absolute left-0 mt-2 w-80 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200/60 z-50 overflow-hidden animate-in fade-in slide-in-from-top-5 duration-300">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-6 text-white">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center text-white text-2xl font-bold backdrop-blur-sm">
+                          {user.firstName?.[0]}
+                          {user.lastName?.[0]}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg">
+                            {user.firstName} {user.lastName}
+                          </h3>
+                          <p className="text-white/80 text-sm">
+                            {user.studentId}
+                          </p>
+                          <p className="text-white/70 text-sm">
+                            {user.department || "Fashion Design"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Profile Data */}
+                    <div className="p-4 space-y-4 max-h-96 overflow-y-auto">
+                      {profileData.bio && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                            Bio
+                          </label>
+                          <p className="text-sm text-gray-700 bg-gray-50/80 rounded-lg p-3">
+                            {profileData.bio}
+                          </p>
+                        </div>
+                      )}
+                      {profileData.skills && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                            Skills
+                          </label>
+                          <p className="text-sm text-gray-700 bg-gray-50/80 rounded-lg p-3">
+                            {profileData.skills}
+                          </p>
+                        </div>
+                      )}
+                      {profileData.specialization && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                            Specialization
+                          </label>
+                          <p className="text-sm text-gray-700 bg-gray-50/80 rounded-lg p-3">
+                            {profileData.specialization}
+                          </p>
+                        </div>
+                      )}
+                      {profileData.contactEmail && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                            Contact Email
+                          </label>
+                          <p className="text-sm text-gray-700 bg-gray-50/80 rounded-lg p-3">
+                            {profileData.contactEmail}
+                          </p>
+                        </div>
+                      )}
+                      {profileData.portfolioUrl && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                            Portfolio
+                          </label>
+                          <a
+                            href={profileData.portfolioUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-purple-600 hover:text-purple-700 bg-gray-50/80 rounded-lg p-3 block break-all"
+                          >
+                            {profileData.portfolioUrl}
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Social Links */}
+                      {(profileData.socialLinks.instagram ||
+                        profileData.socialLinks.linkedin ||
+                        profileData.socialLinks.behance) && (
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                            Social Links
+                          </label>
+                          <div className="space-y-3 bg-gray-50/80 rounded-lg p-3">
+                            {profileData.socialLinks.instagram && (
+                              <div className="flex items-center justify-between group">
+                                <div className="flex items-center space-x-2 min-w-0 flex-1">
+                                  <span className="text-pink-500 flex-shrink-0">
+                                    📷
+                                  </span>
+                                  <span
+                                    className="text-sm text-gray-700 truncate"
+                                    title={profileData.socialLinks.instagram}
+                                  >
+                                    {profileData.socialLinks.instagram}
+                                  </span>
+                                </div>
+                                <button
+                                  onClick={() =>
+                                    copyToClipboard(
+                                      profileData.socialLinks.instagram,
+                                      "instagram"
+                                    )
+                                  }
+                                  className="ml-2 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg transition-all duration-200 flex-shrink-0 group-hover:opacity-100 opacity-70"
+                                  title="Copy link"
+                                >
+                                  {copiedLink === "instagram" ? (
+                                    <svg
+                                      className="w-4 h-4 text-green-500"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M5 13l4 4L19 7"
+                                      />
+                                    </svg>
+                                  ) : (
+                                    <svg
+                                      className="w-4 h-4"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                      />
+                                    </svg>
+                                  )}
+                                </button>
+                              </div>
+                            )}
+
+                            {profileData.socialLinks.linkedin && (
+                              <div className="flex items-center justify-between group">
+                                <div className="flex items-center space-x-2 min-w-0 flex-1">
+                                  <span className="text-blue-600 flex-shrink-0">
+                                    💼
+                                  </span>
+                                  <span
+                                    className="text-sm text-gray-700 truncate"
+                                    title={profileData.socialLinks.linkedin}
+                                  >
+                                    {profileData.socialLinks.linkedin}
+                                  </span>
+                                </div>
+                                <button
+                                  onClick={() =>
+                                    copyToClipboard(
+                                      profileData.socialLinks.linkedin,
+                                      "linkedin"
+                                    )
+                                  }
+                                  className="ml-2 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg transition-all duration-200 flex-shrink-0 group-hover:opacity-100 opacity-70"
+                                  title="Copy link"
+                                >
+                                  {copiedLink === "linkedin" ? (
+                                    <svg
+                                      className="w-4 h-4 text-green-500"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M5 13l4 4L19 7"
+                                      />
+                                    </svg>
+                                  ) : (
+                                    <svg
+                                      className="w-4 h-4"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                      />
+                                    </svg>
+                                  )}
+                                </button>
+                              </div>
+                            )}
+
+                            {profileData.socialLinks.behance && (
+                              <div className="flex items-center justify-between group">
+                                <div className="flex items-center space-x-2 min-w-0 flex-1">
+                                  <span className="text-blue-800 flex-shrink-0">
+                                    🎨
+                                  </span>
+                                  <span
+                                    className="text-sm text-gray-700 truncate"
+                                    title={profileData.socialLinks.behance}
+                                  >
+                                    {profileData.socialLinks.behance}
+                                  </span>
+                                </div>
+                                <button
+                                  onClick={() =>
+                                    copyToClipboard(
+                                      profileData.socialLinks.behance,
+                                      "behance"
+                                    )
+                                  }
+                                  className="ml-2 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-white rounded-lg transition-all duration-200 flex-shrink-0 group-hover:opacity-100 opacity-70"
+                                  title="Copy link"
+                                >
+                                  {copiedLink === "behance" ? (
+                                    <svg
+                                      className="w-4 h-4 text-green-500"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M5 13l4 4L19 7"
+                                      />
+                                    </svg>
+                                  ) : (
+                                    <svg
+                                      className="w-4 h-4"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                      />
+                                    </svg>
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      {/* Empty State */}
+                      {!profileData.bio &&
+                        !profileData.skills &&
+                        !profileData.contactEmail &&
+                        !profileData.portfolioUrl &&
+                        !profileData.socialLinks.instagram &&
+                        !profileData.socialLinks.linkedin &&
+                        !profileData.socialLinks.behance && (
+                          <div className="text-center py-6 text-gray-500">
+                            <div className="text-4xl mb-2">👤</div>
+                            <p className="text-sm">Profile not completed yet</p>
+                            <button
+                              onClick={() => {
+                                setActiveTab("profile");
+                                setShowProfileDropdown(false);
+                              }}
+                              className="mt-2 text-purple-600 hover:text-purple-700 text-sm font-semibold"
+                            >
+                              Complete your profile →
+                            </button>
+                          </div>
+                        )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="border-t border-gray-200/60 p-4 bg-gray-50/50">
+                      <button
+                        onClick={() => {
+                          setActiveTab("profile");
+                          setShowProfileDropdown(false);
+                        }}
+                        className="w-full bg-purple-600 text-white py-2.5 rounded-xl hover:bg-purple-700 transition-all duration-200 font-semibold text-sm hover:shadow-lg"
+                      >
+                        ✏️ Edit Profile
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Logout button */}
               <button
                 onClick={() => setShowLogoutDialog(true)}
                 className="bg-gradient-to-r from-rose-500 to-pink-600 text-white px-6 py-2.5 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold hover:scale-105 transform flex items-center space-x-2"
@@ -423,6 +777,7 @@ const StudentDashboard = () => {
           </div>
         </div>
       </nav>
+
       {/* Main Content */}
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}

@@ -48,7 +48,7 @@ exports.studentSignup = async (req, res) => {
       studentId,
       department,
       role: "student",
-      isApproved: true, // Students need admin approval
+      isApproved: false, // Students need admin approval
     });
 
     await student.save();

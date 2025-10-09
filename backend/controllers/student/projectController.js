@@ -339,71 +339,6 @@ exports.getAllProjects = async (req, res) => {
   }
 };
 
-// Get All Projects (Public Route) - Show both approved and pending
-// exports.getAllProjects = async (req, res) => {
-//   try {
-//     const { category, search, page = 1, limit = 50 } = req.query;
-
-//     console.log("📋 Fetching public projects with filters:", {
-//       category,
-//       search,
-//     });
-
-//     // Build filter to include both approved and pending projects
-//     const filter = {
-//       status: { $in: ["approved", "pending"] }, // Show both approved and pending
-//     };
-
-//     // Add category filter if provided
-//     if (category && category !== "all") {
-//       filter.category = category;
-//     }
-
-//     // Add search filter if provided
-//     if (search) {
-//       filter.$or = [
-//         { title: { $regex: search, $options: "i" } },
-//         { description: { $regex: search, $options: "i" } },
-//         { materials: { $regex: search, $options: "i" } },
-//         { inspiration: { $regex: search, $options: "i" } },
-//       ];
-//     }
-
-//     console.log("🔍 Database filter:", filter);
-
-//     const projects = await Project.find(filter)
-//       .populate("student", "firstName lastName studentId department")
-//       .sort({ createdAt: -1 })
-//       .limit(limit * 1)
-//       .skip((page - 1) * limit);
-
-//     // Get total count for pagination
-//     const total = await Project.countDocuments(filter);
-
-//     console.log(`✅ Found ${projects.length} projects out of ${total} total`);
-
-//     res.json({
-//       success: true,
-//       message: "Projects fetched successfully",
-//       data: {
-//         projects,
-//         pagination: {
-//           current: parseInt(page),
-//           pages: Math.ceil(total / limit),
-//           total,
-//         },
-//       },
-//     });
-//   } catch (error) {
-//     console.error("❌ Get all projects error:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: "Internal server error",
-//       error: error.message,
-//     });
-//   }
-// };
-
 // Get Project Categories (Public Route)
 exports.getProjectCategories = async (req, res) => {
   try {
@@ -421,6 +356,129 @@ exports.getProjectCategories = async (req, res) => {
     });
   } catch (error) {
     console.error("Get project categories error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Add to projectController.js
+
+// Get Pending Projects for Admin
+exports.getPendingProjects = async (req, res) => {
+  try {
+    const projects = await Project.find({ status: "pending" })
+      .populate("student", "firstName lastName studentId department")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: {
+        projects,
+      },
+    });
+  } catch (error) {
+    console.error("Get pending projects error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Get Project Statistics for Admin
+exports.getProjectStatistics = async (req, res) => {
+  try {
+    const totalPending = await Project.countDocuments({ status: "pending" });
+    const totalApproved = await Project.countDocuments({ status: "approved" });
+    const totalRejected = await Project.countDocuments({ status: "rejected" });
+    const totalProjects = await Project.countDocuments();
+
+    res.json({
+      success: true,
+      data: {
+        statistics: {
+          totalPending,
+          totalApproved,
+          totalRejected,
+          totalProjects,
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Get project statistics error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Approve Project
+exports.approveProject = async (req, res) => {
+  try {
+    const { projectId } = req.body;
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    project.status = "approved";
+    project.reviewedAt = new Date();
+    await project.save();
+
+    res.json({
+      success: true,
+      message: "Project approved successfully",
+      data: {
+        project,
+      },
+    });
+  } catch (error) {
+    console.error("Approve project error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+// Reject Project
+exports.rejectProject = async (req, res) => {
+  try {
+    const { projectId, reason } = req.body;
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    project.status = "rejected";
+    project.rejectionReason = reason;
+    project.reviewedAt = new Date();
+    await project.save();
+
+    res.json({
+      success: true,
+      message: "Project rejected successfully",
+      data: {
+        project,
+      },
+    });
+  } catch (error) {
+    console.error("Reject project error:", error);
     res.status(500).json({
       success: false,
       message: "Internal server error",

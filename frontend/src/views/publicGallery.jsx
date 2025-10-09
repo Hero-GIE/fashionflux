@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import SummaryApi from "../common/summaryApi";
+import { FiLogIn } from "react-icons/fi";
 
 const PublicGallery = () => {
   const [projects, setProjects] = useState([]);
@@ -100,7 +101,7 @@ const PublicGallery = () => {
   };
 
   const handleBackToLogin = () => {
-    navigate("/");
+    navigate("/login");
   };
 
   const handleSearchChange = (e) => {
@@ -143,9 +144,9 @@ const PublicGallery = () => {
   };
 
   const heroBackgroundImages = [
-    "https://images.unsplash.com/photo-1445205170230-053b83016050?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80",
-    "https://images.unsplash.com/photo-1558769132-cb1aea1a8eb1?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
-    "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+    "https://media.istockphoto.com/id/1735100420/photo/cozy-dressing-room-floor-hanger-with-womens-seasonal-autumn-winter-clothes-coats-pullovers.jpg?s=612x612&w=0&k=20&c=VtF75DgR1N6MfcwjLUZWo1JyfcS7QdtDbZQYcg2fTAE=",
+    "https://media.istockphoto.com/id/2208803520/photo/young-woman-choosing-clothes-in-a-second-hand-shop-promoting-sustainable-fashion.jpg?s=612x612&w=0&k=20&c=xstd7XTW0BHBhZFuRaNjVDy5DusUHWrzJbNpy1fQN0E=",
+    "https://media.istockphoto.com/id/2188460157/photo/fashion-designer-stylish-drawings-sketches-textile-fabric-material-costume-designer-creative.jpg?s=612x612&w=0&k=20&c=DBbvPzI7fMY5iif2sJew2eteBTfVJarMonWBLWTQttw=",
     "https://images.unsplash.com/photo-1483985988355-763728e1935b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
   ];
 
@@ -404,27 +405,34 @@ const PublicGallery = () => {
 
       {/* Navigation */}
       <nav className="bg-white/90 backdrop-blur-lg border-b border-gray-200 shadow-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform">
-                <span className="text-white font-bold text-xl">F</span>
+        <div className="w-full px-6 lg:px-12">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo Section - aligned to far left */}
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center shadow-md transform hover:scale-110 transition-transform">
+                <span className="text-white font-bold text-lg">F</span>
               </div>
               <div>
-                <span className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                   FashionFlux
                 </span>
-                <span className="text-sm text-gray-500 block -mt-1">
+                <span className="text-xs text-gray-500 block -mt-0.5">
                   KTU Creative Gallery
                 </span>
               </div>
             </div>
-            <button
-              onClick={handleBackToLogin}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-xl hover:shadow-xl transition-all duration-300 font-semibold hover:scale-105 transform"
-            >
-              🎓 Student Portal
-            </button>
+
+            {/* Login Button - aligned to far right */}
+            <div className="ml-auto">
+              <button
+                onClick={handleBackToLogin}
+                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-lg shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 font-medium"
+              >
+                <FiLogIn className="text-lg" />
+
+                <span>Login</span>
+              </button>
+            </div>
           </div>
         </div>
       </nav>
@@ -432,7 +440,7 @@ const PublicGallery = () => {
       {/* Hero */}
       <div
         className="relative text-white py-40 overflow-hidden"
-        style={{ height: "600px" }}
+        style={{ height: "700px" }}
       >
         {/* Background Images with Crossfade */}
         {heroBackgroundImages.map((image, index) => (
@@ -446,7 +454,7 @@ const PublicGallery = () => {
           />
         ))}
 
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/70 via-blue-900/60 to-purple-900/70"></div>
+        <div className="absolute inset-0 bg-purple-900/30"></div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center h-full flex flex-col justify-center">
           <h1 className="text-6xl md:text-7xl font-bold mb-6 leading-tight animate-fadeIn">

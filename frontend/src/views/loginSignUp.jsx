@@ -247,19 +247,20 @@ function LoginSignUp() {
       />
       {/* Navigation Header */}
       <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
+        <div className="w-full px-6 lg:px-12">
+          <div className="flex items-center justify-between h-16">
+            {/* Left Section - Logo */}
             <div className="flex items-center">
-              <div className="flex-shrink-0 flex items-center">
-                <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">F</span>
-                </div>
-                <span className="ml-2 text-xl font-bold text-purple-700">
-                  FashionFlux KTU
-                </span>
+              <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">F</span>
               </div>
+              <span className="ml-2 text-xl font-bold text-purple-700">
+                FashionFlux KTU
+              </span>
             </div>
-            <div className="flex items-center space-x-4">
+
+            {/* Right Section - Nav Links */}
+            <div className="flex items-center space-x-4 ml-auto">
               <Link
                 to="/gallery"
                 className="group flex items-center space-x-2 bg-purple-600 text-white px-6 py-2.5 rounded-xl hover:shadow-xl transition-all duration-300 font-semibold hover:scale-105 transform no-underline"
@@ -270,26 +271,18 @@ function LoginSignUp() {
                   →
                 </span>
               </Link>
+
               <button
                 href="#"
                 className="text-gray-600 hover:text-purple-600 transition-colors font-medium px-3 py-2 rounded-lg hover:bg-purple-50"
               >
                 About
               </button>
-              {/* <button
-                onClick={navigateToLogin}
-                className="flex items-center space-x-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white px-6 py-2.5 rounded-xl hover:shadow-lg transition-all duration-300 font-semibold hover:scale-105 transform disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isLoading}
-              >
-                <span>{currentPage === "login" ? "🎓" : "🔙"}</span>
-                <span>
-                  {currentPage === "login" ? "Student Portal" : "Back to Login"}
-                </span>
-              </button> */}
             </div>
           </div>
         </div>
       </nav>
+
       {/* Main Content */}
       <div className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

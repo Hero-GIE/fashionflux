@@ -6,13 +6,20 @@ import SummaryApi from "../common/summaryApi";
 import { LogoutDialog } from "../components/logout";
 
 const AdminDashboard = () => {
-  const [pendingStudents, setPendingStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingStudents, setPendingStudents] = useState([]);
   const [activeTab, setActiveTab] = useState("students");
+  const [pendingProjects, setPendingProjects] = useState([]);
+  const [approvedProjects, setApprovedProjects] = useState([]);
+  const [rejectedProjects, setRejectedProjects] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [showProjectModal, setShowProjectModal] = useState(false);
   const [stats, setStats] = useState({
     totalPending: 0,
     totalApproved: 0,
     totalStudents: 0,
+    totalRejected: 0,
+    totalProjects: 0,
   });
   const [user, setUser] = useState(null);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
@@ -23,6 +30,8 @@ const AdminDashboard = () => {
     loadAdminData();
     loadPendingStudents();
     loadDashboardStats();
+    loadPendingProjects();
+    loadProjectStats();
   }, []);
 
   // Get auth token from localStorage
@@ -215,6 +224,96 @@ const AdminDashboard = () => {
     );
   };
 
+  // Add these functions to load projects
+  const loadPendingProjects = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(SummaryApi.getPendingProjects.url, {
+        method: SummaryApi.getPendingProjects.method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setPendingProjects(data.data.projects || []);
+      }
+    } catch (error) {
+      console.error("Error loading pending projects:", error);
+      toast.error("Failed to load pending projects");
+    }
+  };
+
+  const loadProjectStats = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(SummaryApi.getProjectStatistics.url, {
+        method: SummaryApi.getProjectStatistics.method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setProjectStats(data.data.statistics);
+      }
+    } catch (error) {
+      console.error("Error loading project stats:", error);
+    }
+  };
+
+  const approveProject = async (projectId) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(SummaryApi.approveProject.url, {
+        method: SummaryApi.approveProject.method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ projectId }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        toast.success("Project approved successfully!");
+        loadPendingProjects();
+        loadProjectStats();
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      toast.error("Failed to approve project");
+    }
+  };
+
+  const rejectProject = async (projectId, reason) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await fetch(SummaryApi.rejectProject.url, {
+        method: SummaryApi.rejectProject.method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ projectId, reason }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        toast.success("Project rejected successfully!");
+        loadPendingProjects();
+        loadProjectStats();
+      } else {
+        throw new Error(data.message);
+      }
+    } catch (error) {
+      toast.error("Failed to reject project");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
       {/* Toast Container */}
@@ -239,7 +338,7 @@ const AdminDashboard = () => {
       />
 
       {/* Navigation Header */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200/60 shadow-sm">
+      <nav className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 border-gray-200/60 shadow-sm">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
@@ -590,16 +689,327 @@ const AdminDashboard = () => {
             )}
 
             {activeTab === "projects" && (
-              <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-purple-50/30 rounded-2xl border-2 border-dashed border-gray-300">
-                <div className="text-8xl mb-6">🎨</div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Project Review System
-                </h3>
-                <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
-                  Project approval features coming soon! This is where you'll
-                  review and approve student project submissions.
-                </p>
-                <div className="text-sm text-gray-500">Under Development</div>
+              <div>
+                {/* Project Stats Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl p-4 shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-amber-100 text-sm font-medium">
+                          Pending Review
+                        </p>
+                        <p className="text-2xl font-bold mt-1">
+                          {projectStats.totalPending}
+                        </p>
+                      </div>
+                      <div className="text-2xl">⏳</div>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl p-4 shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-green-100 text-sm font-medium">
+                          Approved
+                        </p>
+                        <p className="text-2xl font-bold mt-1">
+                          {projectStats.totalApproved}
+                        </p>
+                      </div>
+                      <div className="text-2xl">✅</div>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-2xl p-4 shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-rose-100 text-sm font-medium">
+                          Rejected
+                        </p>
+                        <p className="text-2xl font-bold mt-1">
+                          {projectStats.totalRejected}
+                        </p>
+                      </div>
+                      <div className="text-2xl">❌</div>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl p-4 shadow-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-blue-100 text-sm font-medium">
+                          Total Projects
+                        </p>
+                        <p className="text-2xl font-bold mt-1">
+                          {projectStats.totalProjects}
+                        </p>
+                      </div>
+                      <div className="text-2xl">🎨</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      Project Submissions Review
+                    </h2>
+                    <p className="text-gray-600 mt-1">
+                      Review and approve student project submissions
+                    </p>
+                  </div>
+                </div>
+
+                {/* Projects Grid */}
+                {pendingProjects.length === 0 ? (
+                  <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-purple-50/30 rounded-2xl border-2 border-dashed border-gray-300">
+                    <div className="text-8xl mb-6">🎉</div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                      All Projects Reviewed!
+                    </h3>
+                    <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
+                      No pending project submissions at the moment. Check back
+                      later for new creative work from students.
+                    </p>
+                    <div className="text-sm text-gray-500">
+                      Projects will appear here as students submit them
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {pendingProjects.map((project) => (
+                      <div
+                        key={project._id}
+                        className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-500 border border-gray-100 hover:border-purple-200 group"
+                      >
+                        {/* Project Image */}
+                        <div className="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100 rounded-t-2xl overflow-hidden">
+                          {project.images.length > 0 ? (
+                            <img
+                              src={project.images[0].url}
+                              alt={project.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <div className="text-4xl text-gray-300">🎨</div>
+                            </div>
+                          )}
+                          <div className="absolute top-3 right-3 bg-amber-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
+                            ⏳ Pending
+                          </div>
+                          {project.images.length > 1 && (
+                            <div className="absolute top-3 left-3 bg-black/50 text-white px-2 py-1 rounded-full text-xs">
+                              📸 {project.images.length}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="p-6">
+                          {/* Project Header */}
+                          <div className="mb-4">
+                            <h3 className="font-bold text-gray-900 text-lg line-clamp-2 mb-2">
+                              {project.title}
+                            </h3>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-semibold">
+                                {project.category}
+                              </span>
+                              <span className="text-gray-500">
+                                {new Date(
+                                  project.createdAt
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Student Info */}
+                          <div className="flex items-center space-x-3 mb-4 p-3 bg-gray-50 rounded-lg">
+                            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                              {project.student.firstName?.[0]}
+                              {project.student.lastName?.[0]}
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-900">
+                                {project.student.firstName}{" "}
+                                {project.student.lastName}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {project.student.studentId} •{" "}
+                                {project.student.department}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Project Description */}
+                          <p className="text-gray-600 text-sm line-clamp-3 mb-4">
+                            {project.description}
+                          </p>
+
+                          {/* Materials & Inspiration */}
+                          {(project.materials || project.inspiration) && (
+                            <div className="space-y-2 mb-4 text-xs text-gray-500">
+                              {project.materials && (
+                                <div className="flex items-center space-x-2">
+                                  <span>🧵</span>
+                                  <span className="line-clamp-1">
+                                    {project.materials}
+                                  </span>
+                                </div>
+                              )}
+                              {project.inspiration && (
+                                <div className="flex items-center space-x-2">
+                                  <span>💫</span>
+                                  <span className="line-clamp-1">
+                                    {project.inspiration}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Action Buttons */}
+                          <div className="flex space-x-3">
+                            <button
+                              onClick={() => {
+                                setSelectedProject(project);
+                                setShowProjectModal(true);
+                              }}
+                              className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-xl hover:bg-gray-200 transition-all duration-200 font-semibold text-sm flex items-center justify-center space-x-2"
+                            >
+                              <span>👁️</span>
+                              <span>View Details</span>
+                            </button>
+                            <button
+                              onClick={() => approveProject(project._id)}
+                              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-2 px-4 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold text-sm flex items-center justify-center space-x-2"
+                            >
+                              <span>✅</span>
+                              <span>Approve</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Project Detail Modal */}
+                {showProjectModal && selectedProject && (
+                  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-3xl max-w-4xl max-h-[90vh] overflow-y-auto">
+                      <div className="p-6">
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between mb-6">
+                          <h3 className="text-2xl font-bold text-gray-900">
+                            {selectedProject.title}
+                          </h3>
+                          <button
+                            onClick={() => setShowProjectModal(false)}
+                            className="text-gray-400 hover:text-gray-600 text-2xl"
+                          >
+                            ×
+                          </button>
+                        </div>
+
+                        {/* Image Gallery */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                          {selectedProject.images.map((image, index) => (
+                            <div
+                              key={index}
+                              className="rounded-2xl overflow-hidden"
+                            >
+                              <img
+                                src={image.url}
+                                alt={`${selectedProject.title} - Image ${
+                                  index + 1
+                                }`}
+                                className="w-full h-64 object-cover"
+                              />
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Project Details */}
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-sm font-semibold text-gray-700">
+                              Description
+                            </label>
+                            <p className="text-gray-600 mt-1">
+                              {selectedProject.description}
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-sm font-semibold text-gray-700">
+                                Category
+                              </label>
+                              <p className="text-gray-600 mt-1">
+                                {selectedProject.category}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="text-sm font-semibold text-gray-700">
+                                Student
+                              </label>
+                              <p className="text-gray-600 mt-1">
+                                {selectedProject.student.firstName}{" "}
+                                {selectedProject.student.lastName}
+                              </p>
+                            </div>
+                          </div>
+
+                          {selectedProject.materials && (
+                            <div>
+                              <label className="text-sm font-semibold text-gray-700">
+                                Materials Used
+                              </label>
+                              <p className="text-gray-600 mt-1">
+                                {selectedProject.materials}
+                              </p>
+                            </div>
+                          )}
+
+                          {selectedProject.inspiration && (
+                            <div>
+                              <label className="text-sm font-semibold text-gray-700">
+                                Design Inspiration
+                              </label>
+                              <p className="text-gray-600 mt-1">
+                                {selectedProject.inspiration}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex space-x-3 mt-6 pt-6 border-t border-gray-200">
+                          <button
+                            onClick={() => {
+                              setShowProjectModal(false);
+                              rejectProject(
+                                selectedProject._id,
+                                "Does not meet guidelines"
+                              );
+                            }}
+                            className="flex-1 bg-gradient-to-r from-rose-500 to-pink-600 text-white py-3 px-4 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold"
+                          >
+                            ❌ Reject Project
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowProjectModal(false);
+                              approveProject(selectedProject._id);
+                            }}
+                            className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 rounded-xl hover:shadow-lg transition-all duration-200 font-semibold"
+                          >
+                            ✅ Approve Project
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
