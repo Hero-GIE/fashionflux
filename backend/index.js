@@ -75,3 +75,5 @@ app.listen(PORT, () => {
   console.log(`📁 Upload directory: ${path.join(__dirname, "uploads")}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
 });
+
+module.exports = app;
