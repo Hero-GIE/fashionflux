@@ -1,5 +1,8 @@
-// src/common/SummaryApi.js
-const backendDomain = "http://localhost:8000";
+// Automatically use localhost in development and production URL otherwise
+const backendDomain =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:8000"
+    : process.env.REACT_APP_BACKEND_URL;
 
 const SummaryApi = {
   studentSignUp: {
@@ -19,13 +22,12 @@ const SummaryApi = {
     method: "get",
   },
 
-  // Student profile endpoints - FIXED: Remove duplicate getProfile
+  // Student profile endpoints
   saveProfile: {
     url: `${backendDomain}/api/student/save-profile`,
     method: "post",
   },
   getStudentProfile: {
-    // Make sure this matches what you're using
     url: `${backendDomain}/api/student/get-student-profile`,
     method: "get",
   },
@@ -54,17 +56,15 @@ const SummaryApi = {
     method: "GET",
   },
 
-  // Add these new admin statistics endpoints
+  // Admin statistics endpoints
   getStudentStatistics: {
     url: `${backendDomain}/api/admin/statistics/students`,
     method: "GET",
   },
-
   getStudentAnalytics: {
     url: `${backendDomain}/api/admin/statistics/analytics`,
     method: "GET",
   },
-
   getPendingProjects: {
     url: `${backendDomain}/api/admin/pending-projects`,
     method: "GET",
@@ -82,7 +82,7 @@ const SummaryApi = {
     method: "PATCH",
   },
 
-  // Add to SummaryApi.js
+  // Dashboard analytics
   getPlatformAnalytics: {
     url: `${backendDomain}/api/admin/analytics/dashboard`,
     method: "GET",
@@ -92,7 +92,7 @@ const SummaryApi = {
     method: "GET",
   },
 
-  // Add to SummaryApi.js
+  // Admin management endpoints
   getAllStudents: {
     url: `${backendDomain}/api/admin/all-students`,
     method: "GET",
@@ -101,7 +101,6 @@ const SummaryApi = {
     url: `${backendDomain}/api/admin/all-projects`,
     method: "GET",
   },
-
   deleteStudent: {
     url: `${backendDomain}/api/admin/delete-student`,
     method: "delete",
