@@ -81,6 +81,35 @@ const SummaryApi = {
     url: `${backendDomain}/api/admin/reject-project`,
     method: "PATCH",
   },
+
+  // Add to SummaryApi.js
+  getPlatformAnalytics: {
+    url: `${backendDomain}/api/admin/analytics/dashboard`,
+    method: "GET",
+  },
+  getActivityFeed: {
+    url: `${backendDomain}/api/admin/analytics/activity-feed`,
+    method: "GET",
+  },
+
+  // Add to SummaryApi.js
+  getAllStudents: {
+    url: `${backendDomain}/api/admin/all-students`,
+    method: "GET",
+  },
+  getAllProjects: {
+    url: `${backendDomain}/api/admin/all-projects`,
+    method: "GET",
+  },
+
+  deleteStudent: {
+    url: `${backendDomain}/api/admin/delete-student`,
+    method: "delete",
+  },
+  deleteProject: {
+    url: `${backendDomain}/api/admin/delete-project`,
+    method: "delete",
+  },
 };
 
 export default SummaryApi;

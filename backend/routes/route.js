@@ -15,6 +15,9 @@ const { protect, authorize } = require("../middleware/auth");
 const {
   getPendingStudents,
   approveStudent,
+  getAllStudents,
+  deleteProject,
+  deleteStudent,
 } = require("../controllers/admin/approveStudents");
 const {
   saveStudentProfile,
@@ -36,6 +39,11 @@ const {
   getStudentStatistics,
   getStudentAnalytics,
 } = require("../controllers/admin/statisticsController");
+const {
+  getPlatformAnalytics,
+  getActivityFeed,
+} = require("../controllers/admin/analyticsController");
+const activityLogger = require("../middleware/activityLogger");
 
 const router = express.Router();
 
@@ -45,7 +53,7 @@ router.post("/admin/signup", validateAdminSignup, adminSignup);
 router.post("/login", validateLogin, login);
 
 // Protected routes
-router.get("/me", protect, getMe);
+router.get("/me", protect, activityLogger, getMe);
 
 // Admin routes
 router.get(
@@ -58,6 +66,7 @@ router.patch(
   "/admin/approve-student/:studentId",
   protect,
   authorize("admin"),
+  activityLogger,
   approveStudent
 );
 
@@ -112,6 +121,7 @@ router.patch(
   "/admin/approve-project",
   protect,
   authorize("admin"),
+  activityLogger,
   approveProject
 );
 
@@ -122,4 +132,37 @@ router.patch(
   rejectProject
 );
 
+// Analytics Routes
+router.get(
+  "/admin/analytics/dashboard",
+  protect,
+  authorize("admin"),
+  getPlatformAnalytics
+);
+
+router.get(
+  "/admin/analytics/activity-feed",
+  protect,
+  authorize("admin"),
+  getActivityFeed
+);
+
+router.get("/admin/all-students", protect, authorize("admin"), getAllStudents);
+router.get("/admin/all-projects", protect, authorize("admin"), getAllProjects);
+
+router.delete(
+  "/admin/delete-project/:projectId",
+  protect,
+  authorize("admin"),
+  activityLogger,
+  deleteProject
+);
+
+router.delete(
+  "/admin/delete-student/:studentId",
+  protect,
+  authorize("admin"),
+  activityLogger,
+  deleteStudent
+);
 module.exports = router;
