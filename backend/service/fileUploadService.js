@@ -43,6 +43,7 @@ class FileUploadService {
           ...form.getHeaders(),
           Authorization: `Bearer ${authToken}`,
         },
+        timeout: 30000,
         maxContentLength: Infinity,
         maxBodyLength: Infinity,
       });

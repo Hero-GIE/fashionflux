@@ -92,7 +92,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from uploads directory
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Request logging middleware (for debugging)
 app.use((req, res, next) => {
@@ -164,23 +164,49 @@ app.use((req, res) => {
 let cachedDb = null;
 
 async function connectToDatabase() {
+  // Return cached connection if available and connected
   if (cachedDb && mongoose.connection.readyState === 1) {
+    console.log("✅ Using cached MongoDB connection");
     return cachedDb;
   }
 
   try {
+    console.log("🔄 Creating new MongoDB connection");
+
+    // Close existing connection if it's in a bad state
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.connection.close();
+    }
+
+    // Connect with serverless-optimized settings
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       bufferCommands: false,
       bufferMaxEntries: 0,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     });
 
-    cachedDb = mongoose.connection;
-    console.log("✅ MongoDB connected");
+    cachedDb = conn.connection;
+    console.log("✅ MongoDB connected successfully");
+
+    // Handle connection events
+    mongoose.connection.on("error", (err) => {
+      console.error("❌ MongoDB connection error:", err);
+      cachedDb = null;
+    });
+
+    mongoose.connection.on("disconnected", () => {
+      console.log("🔌 MongoDB disconnected");
+      cachedDb = null;
+    });
+
     return cachedDb;
   } catch (error) {
-    console.log("❌ MongoDB connection error:", error);
+    console.error("❌ MongoDB connection failed:", error);
+    cachedDb = null;
     throw error;
   }
 }
