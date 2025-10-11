@@ -549,7 +549,8 @@ function LoginSignUp() {
                           required
                           disabled={isLoading}
                         >
-                          <option value="">Select Department</option>
+                          <option value="">Select Course</option>
+
                           {departments.map((dept) => (
                             <option
                               key={dept}
