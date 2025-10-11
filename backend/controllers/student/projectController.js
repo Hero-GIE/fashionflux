@@ -128,6 +128,7 @@ exports.createProject = async (req, res) => {
 };
 
 // Get Student Projects
+// Get Student Projects
 exports.getStudentProjects = async (req, res) => {
   try {
     const studentId = req.user.id;
@@ -139,7 +140,7 @@ exports.getStudentProjects = async (req, res) => {
     }
 
     const projects = await Project.find(filter)
-      .populate("student", "firstName lastName studentId department")
+      .populate("student", "firstName lastName studentId department profile") // ADDED 'profile'
       .sort({ createdAt: -1 });
 
     res.json({
@@ -159,6 +160,7 @@ exports.getStudentProjects = async (req, res) => {
 };
 
 // Get Single Project
+// Get Single Project
 exports.getProject = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -167,7 +169,7 @@ exports.getProject = async (req, res) => {
     const project = await Project.findOne({
       _id: projectId,
       student: studentId,
-    }).populate("student", "firstName lastName studentId department");
+    }).populate("student", "firstName lastName studentId department profile"); // ADDED 'profile'
 
     if (!project) {
       return res.status(404).json({
@@ -308,7 +310,7 @@ exports.getAllProjects = async (req, res) => {
     console.log("🔍 Database filter:", filter);
 
     const projects = await Project.find(filter)
-      .populate("student", "firstName lastName studentId department")
+      .populate("student", "firstName lastName studentId department profile") // ADDED 'profile' here
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);
@@ -364,17 +366,16 @@ exports.getProjectCategories = async (req, res) => {
   }
 };
 
-// Add to projectController.js
-
 // Get Pending Projects for Admin
 exports.getPendingProjects = async (req, res) => {
   try {
     const projects = await Project.find({ status: "pending" })
-      .populate("student", "firstName lastName studentId department")
+      .populate("student", "firstName lastName studentId department profile") // ADDED 'profile'
       .sort({ createdAt: -1 });
 
     res.json({
       success: true,
+      message: "Pending projects fetched successfully",
       data: {
         projects,
       },

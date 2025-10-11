@@ -87,6 +87,15 @@ const PublicGallery = () => {
       prev === 0 ? selectedProject.images.length - 1 : prev - 1
     );
   };
+  const scrollToProjects = () => {
+    const projectsSection = document.getElementById("projects-gallery");
+    if (projectsSection) {
+      projectsSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  };
 
   const handleNextImage = () => {
     setCurrentImageIndex((prev) =>
@@ -186,25 +195,32 @@ const PublicGallery = () => {
 
       {/* Project Dialog */}
       {showProjectDialog && selectedProject && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden animate-scaleIn">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900">
-                  {selectedProject.title}
-                </h2>
-                <p className="text-gray-600 mt-1">
-                  {categoryLabels[selectedProject.category]}
-                </p>
-              </div>
-              <div className="flex items-center space-x-4">
-                {getStatusBadge(selectedProject.status)}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg animate-fadeIn">
+          <div className="bg-gradient-to-br from-white via-purple-50 to-blue-50 rounded-3xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden animate-scaleIn border border-white/20">
+            {/* Header */}
+            {/* Header - Clean design without background */}
+            <div className="bg-white p-6 border-b border-gray-100">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 pr-8">
+                  <div className="flex items-center gap-3 mb-1">
+                    {getStatusBadge(selectedProject.status)}
+                    <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+                      {categoryLabels[selectedProject.category]}
+                    </span>
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-1 leading-tight">
+                    {selectedProject.title}
+                  </h2>
+                  <p className="text-gray-600 text-md">
+                    {selectedProject.tagline || "Creative Fashion Design"}
+                  </p>
+                </div>
                 <button
                   onClick={() => setShowProjectDialog(false)}
-                  className="p-3 hover:bg-white rounded-xl transition-all duration-200 hover:rotate-90"
+                  className="bg-gray-100 hover:bg-gray-200 rounded-2xl p-3 transition-all duration-300 hover:scale-110 hover:rotate-90 group"
                 >
                   <svg
-                    className="w-6 h-6 text-gray-500"
+                    className="w-6 h-6 text-gray-600 group-hover:text-gray-700 transition-colors"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -220,179 +236,354 @@ const PublicGallery = () => {
               </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row h-[calc(90vh-100px)]">
-              <div className="lg:w-1/2 p-6 bg-gray-50">
-                <div className="relative rounded-2xl overflow-hidden bg-white shadow-xl">
+            <div className="flex flex-col lg:flex-row h-[calc(95vh-120px)]">
+              {/* Image Gallery Section */}
+              <div className="lg:w-1/2 p-8 bg-gradient-to-br from-gray-50 to-white">
+                <div className="relative rounded-3xl overflow-hidden bg-white shadow-2xl border border-gray-100">
                   {selectedProject.images.length > 0 ? (
                     <>
-                      <img
-                        src={selectedProject.images[currentImageIndex].url}
-                        alt={selectedProject.title}
-                        className="w-full h-96 object-cover"
-                      />
-                      {selectedProject.images.length > 1 && (
-                        <>
-                          <button
-                            onClick={handlePreviousImage}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white hover:scale-110 transition-all duration-200"
-                          >
-                            <svg
-                              className="w-5 h-5 text-gray-700"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                      <div className="relative aspect-[4/3] overflow-hidden">
+                        <img
+                          src={selectedProject.images[currentImageIndex].url}
+                          alt={selectedProject.title}
+                          className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                        />
+
+                        {/* Gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+
+                        {selectedProject.images.length > 1 && (
+                          <>
+                            {/* Navigation Buttons */}
+                            <button
+                              onClick={handlePreviousImage}
+                              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-2xl hover:bg-white hover:scale-110 transition-all duration-300 group"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2.5}
-                                d="M15 19l-7-7 7-7"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={handleNextImage}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/95 backdrop-blur-sm rounded-full p-3 shadow-lg hover:bg-white hover:scale-110 transition-all duration-200"
-                          >
-                            <svg
-                              className="w-5 h-5 text-gray-700"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                              <svg
+                                className="w-6 h-6 text-gray-700 group-hover:text-purple-600 transition-colors"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2.5}
+                                  d="M15 19l-7-7 7-7"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={handleNextImage}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-2xl hover:bg-white hover:scale-110 transition-all duration-300 group"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2.5}
-                                d="M9 5l7 7-7 7"
-                              />
-                            </svg>
-                          </button>
-                          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/80 text-white px-4 py-1.5 rounded-full text-sm font-semibold backdrop-blur-sm">
-                            {currentImageIndex + 1} /{" "}
-                            {selectedProject.images.length}
-                          </div>
-                        </>
-                      )}
+                              <svg
+                                className="w-6 h-6 text-gray-700 group-hover:text-purple-600 transition-colors"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2.5}
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
+                            </button>
+
+                            {/* Image Counter */}
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-semibold border border-white/20">
+                              📸 {currentImageIndex + 1} /{" "}
+                              {selectedProject.images.length}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </>
                   ) : (
-                    <div className="w-full h-96 flex items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100">
-                      <div className="text-7xl animate-bounce">🎨</div>
+                    <div className="w-full h-96 flex flex-col items-center justify-center bg-gradient-to-br from-purple-100 to-blue-100">
+                      <div className="text-8xl mb-4 animate-float">🎨</div>
+                      <p className="text-gray-600 font-medium">
+                        No images available
+                      </p>
                     </div>
                   )}
                 </div>
 
+                {/* Thumbnail Gallery */}
                 {selectedProject.images.length > 1 && (
-                  <div className="mt-4 grid grid-cols-4 gap-2">
-                    {selectedProject.images.map((image, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentImageIndex(index)}
-                        className={`relative rounded-xl overflow-hidden border-2 transition-all duration-200 ${
-                          index === currentImageIndex
-                            ? "border-purple-500 ring-2 ring-purple-300 scale-105"
-                            : "border-gray-200 hover:border-purple-300 hover:scale-105"
-                        }`}
-                      >
-                        <img
-                          src={image.url}
-                          alt=""
-                          className="w-full h-20 object-cover"
-                        />
-                      </button>
-                    ))}
+                  <div className="mt-6">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                      <span className="text-lg mr-2">🖼️</span>
+                      Gallery ({selectedProject.images.length} images)
+                    </h4>
+                    <div className="grid grid-cols-4 gap-3">
+                      {selectedProject.images.map((image, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={`relative rounded-2xl overflow-hidden border-3 transition-all duration-300 transform ${
+                            index === currentImageIndex
+                              ? "border-purple-500 ring-4 ring-purple-200 scale-105 shadow-lg"
+                              : "border-gray-200 hover:border-purple-300 hover:scale-105 hover:shadow-md"
+                          }`}
+                        >
+                          <img
+                            src={image.url}
+                            alt=""
+                            className="w-full h-20 object-cover"
+                          />
+                          {index === currentImageIndex && (
+                            <div className="absolute inset-0 bg-purple-500/20 flex items-center justify-center">
+                              <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                              </div>
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
 
-              <div className="lg:w-1/2 p-6 overflow-y-auto custom-scrollbar">
-                <div className="space-y-5">
-                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl p-5 border border-purple-100">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                      <span className="bg-purple-500 text-white p-2 rounded-lg mr-3 text-xl">
+              {/* Content Section */}
+              <div className="lg:w-1/2 p-8 overflow-y-auto custom-scrollbar">
+                <div className="space-y-6">
+                  {/* Project Description */}
+                  <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 border border-gray-100 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                      <span className="bg-gradient-to-r from-purple-500 to-blue-500 text-white p-3 rounded-2xl mr-4 text-2xl shadow-lg">
                         📖
                       </span>
-                      Project Description
+                      Project Story
                     </h3>
-                    <p className="text-gray-700 leading-relaxed">
+                    <p className="text-gray-700 leading-relaxed text-lg">
                       {selectedProject.description}
                     </p>
                   </div>
 
+                  {/* Materials Used */}
                   {selectedProject.materials && (
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-5 border border-green-100">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                        <span className="bg-green-500 text-white p-2 rounded-lg mr-3 text-xl">
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-3xl p-6 border border-green-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                      <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-3 rounded-2xl mr-4 text-2xl shadow-lg">
                           🧵
                         </span>
-                        Materials Used
+                        Materials & Techniques
                       </h3>
-                      <p className="text-gray-700">
+                      <p className="text-gray-700 leading-relaxed">
                         {selectedProject.materials}
                       </p>
                     </div>
                   )}
 
+                  {/* Design Inspiration */}
                   {selectedProject.inspiration && (
-                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-5 border border-blue-100">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                        <span className="bg-blue-500 text-white p-2 rounded-lg mr-3 text-xl">
-                          💫
+                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-3xl p-6 border border-blue-200 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                      <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                        <span className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-3 rounded-2xl mr-4 text-2xl shadow-lg">
+                          ✨
                         </span>
-                        Design Inspiration
+                        Creative Inspiration
                       </h3>
-                      <p className="text-gray-700">
+                      <p className="text-gray-700 leading-relaxed">
                         {selectedProject.inspiration}
                       </p>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4 bg-gray-50 rounded-2xl p-5">
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-500 mb-1">
-                        Category
-                      </h4>
-                      <p className="text-gray-900 font-medium">
-                        {categoryLabels[selectedProject.category]}
-                      </p>
+                  {/* Project Details Grid */}
+                  <div className="grid grid-cols-2 gap-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-3xl p-6 border border-purple-200 shadow-lg">
+                    <div className="text-center">
+                      <div className="bg-white rounded-2xl p-4 shadow-sm">
+                        <div className="text-2xl mb-2">🏷️</div>
+                        <h4 className="text-sm font-semibold text-gray-500 mb-1">
+                          Category
+                        </h4>
+                        <p className="text-gray-900 font-bold text-lg">
+                          {categoryLabels[selectedProject.category]}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-500 mb-1">
-                        Created
-                      </h4>
-                      <p className="text-gray-900 font-medium">
-                        {new Date(selectedProject.createdAt).toLocaleDateString(
-                          "en-US",
-                          {
+                    <div className="text-center">
+                      <div className="bg-white rounded-2xl p-4 shadow-sm">
+                        <div className="text-2xl mb-2">📅</div>
+                        <h4 className="text-sm font-semibold text-gray-500 mb-1">
+                          Created
+                        </h4>
+                        <p className="text-gray-900 font-bold text-lg">
+                          {new Date(
+                            selectedProject.createdAt
+                          ).toLocaleDateString("en-US", {
                             year: "numeric",
-                            month: "long",
+                            month: "short",
                             day: "numeric",
-                          }
-                        )}
-                      </p>
+                          })}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
+                  {/* Enhanced Designer Information */}
                   {selectedProject.student && (
-                    <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-2xl p-5 border border-purple-200">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                        Designer Information
-                      </h4>
-                      <div className="flex items-center space-x-4">
-                        <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl shadow-lg">
-                          {selectedProject.student.firstName?.[0]}
-                          {selectedProject.student.lastName?.[0]}
+                    <div className="bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 rounded-2xl p-6 border-2 border-purple-200 shadow-lg">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                          <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-2 rounded-lg mr-3 text-xl">
+                            👤
+                          </span>
+                          Designer Profile
+                        </h3>
+                      </div>
+
+                      <div className="space-y-4">
+                        {/* Designer Header */}
+                        <div className="flex items-center space-x-4 bg-white/70 backdrop-blur-sm rounded-xl p-4">
+                          <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-4 ring-purple-200">
+                            {selectedProject.student.firstName?.[0]}
+                            {selectedProject.student.lastName?.[0]}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-bold text-gray-900 text-xl">
+                              {selectedProject.student.firstName}{" "}
+                              {selectedProject.student.lastName}
+                            </p>
+                            <p className="text-sm text-gray-600 font-medium">
+                              Fashion Design Student
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-900 text-lg">
-                            {selectedProject.student.firstName}{" "}
-                            {selectedProject.student.lastName}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {selectedProject.student.studentId} •{" "}
-                            {selectedProject.student.department}
-                          </p>
+
+                        {/* Academic Details */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3">
+                            <p className="text-xs font-semibold text-gray-500 mb-1">
+                              Student ID
+                            </p>
+                            <p className="text-sm font-bold text-gray-900">
+                              {selectedProject.student.studentId}
+                            </p>
+                          </div>
+                          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3">
+                            <p className="text-xs font-semibold text-gray-500 mb-1">
+                              Department
+                            </p>
+                            <p className="text-sm font-bold text-gray-900">
+                              {selectedProject.student.department}
+                            </p>
+                          </div>
                         </div>
+
+                        {/* Contact Information */}
+                        {selectedProject.student.email && (
+                          <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3">
+                            <p className="text-xs font-semibold text-gray-500 mb-1">
+                              Email
+                            </p>
+                            <p className="text-sm font-medium text-purple-600 break-all">
+                              {selectedProject.student.email}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Profile Details */}
+                        {selectedProject.student.profile && (
+                          <>
+                            {selectedProject.student.profile.bio && (
+                              <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3">
+                                <p className="text-xs font-semibold text-gray-500 mb-2">
+                                  About Designer
+                                </p>
+                                <p className="text-sm text-gray-700 leading-relaxed">
+                                  {selectedProject.student.profile.bio}
+                                </p>
+                              </div>
+                            )}
+
+                            {selectedProject.student.profile.specialization && (
+                              <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3">
+                                <p className="text-xs font-semibold text-gray-500 mb-1">
+                                  Specialization
+                                </p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {
+                                    selectedProject.student.profile
+                                      .specialization
+                                  }
+                                </p>
+                              </div>
+                            )}
+
+                            {selectedProject.student.profile.skills && (
+                              <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3">
+                                <p className="text-xs font-semibold text-gray-500 mb-2">
+                                  Skills & Expertise
+                                </p>
+                                <p className="text-sm text-gray-700">
+                                  {selectedProject.student.profile.skills}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Social Links */}
+                            {selectedProject.student.profile.socialLinks &&
+                              Object.values(
+                                selectedProject.student.profile.socialLinks
+                              ).some((link) => link) && (
+                                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3">
+                                  <p className="text-xs font-semibold text-gray-500 mb-2">
+                                    Connect with Designer
+                                  </p>
+                                  <div className="flex flex-wrap gap-2">
+                                    {selectedProject.student.profile.socialLinks
+                                      .instagram && (
+                                      <a
+                                        href={
+                                          selectedProject.student.profile
+                                            .socialLinks.instagram
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1.5 bg-gradient-to-r from-pink-500 to-purple-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:shadow-md transition-all"
+                                      >
+                                        📸 Instagram
+                                      </a>
+                                    )}
+                                    {selectedProject.student.profile.socialLinks
+                                      .linkedin && (
+                                      <a
+                                        href={
+                                          selectedProject.student.profile
+                                            .socialLinks.linkedin
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:shadow-md transition-all"
+                                      >
+                                        💼 LinkedIn
+                                      </a>
+                                    )}
+                                    {selectedProject.student.profile.socialLinks
+                                      .behance && (
+                                      <a
+                                        href={
+                                          selectedProject.student.profile
+                                            .socialLinks.behance
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1.5 bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:shadow-md transition-all"
+                                      >
+                                        🎨 Behance
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                          </>
+                        )}
                       </div>
                     </div>
                   )}
@@ -465,14 +656,13 @@ const PublicGallery = () => {
             students
           </p>
           <div className="flex items-center justify-center space-x-6 text-lg animate-fadeIn">
-            <div className="flex items-center space-x-3 bg-white/20 backdrop-blur-md px-5 py-3 rounded-full hover:bg-white/30 transition-all">
+            <button
+              onClick={scrollToProjects}
+              className="flex items-center space-x-3 bg-white/20 backdrop-blur-md px-5 py-3 rounded-full hover:bg-white/30 transition-all hover:scale-105 transform cursor-pointer"
+            >
               <span className="text-2xl">🎨</span>
               <span className="font-semibold">{projects.length} Projects</span>
-            </div>
-            <div className="flex items-center space-x-3 bg-white/20 backdrop-blur-md px-5 py-3 rounded-full hover:bg-white/30 transition-all">
-              <span className="text-2xl">🌟</span>
-              <span className="font-semibold">Student Portfolio</span>
-            </div>
+            </button>
           </div>
 
           {/* Image Indicators */}
@@ -547,7 +737,7 @@ const PublicGallery = () => {
         </div>
 
         {/* Content Area - Fixed Height */}
-        <div className="min-h-[600px]">
+        <div id="projects-gallery" className="min-h-[600px]">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-32 bg-white/60 rounded-3xl border-2 border-dashed border-gray-300">
               <div className="relative mb-6">
@@ -628,7 +818,7 @@ const PublicGallery = () => {
                         </div>
                       </div>
 
-                      <div className="p-6">
+                      {/* <div className="p-6">
                         <h3 className="text-xl font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-purple-700 transition-colors mb-2">
                           {project.title}
                         </h3>
@@ -653,7 +843,7 @@ const PublicGallery = () => {
                             </div>
                           </div>
                         )}
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 ))}
