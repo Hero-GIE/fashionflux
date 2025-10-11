@@ -25,7 +25,28 @@ exports.validateStudentSignup = [
   body("studentId").notEmpty().withMessage("Student ID is required"),
 
   body("department")
-    .isIn(["fashion-design", "textile-technology", "fashion-marketing"])
+    .isIn([
+      "fashion-design",
+      "textile-technology",
+      "fashion-marketing",
+      "pattern-making-garment-construction",
+      "fashion-merchandising",
+      "apparel-production",
+      "fashion-illustration",
+      "fashion-styling",
+      "accessory-design",
+      "footwear-design",
+      "fashion-photography",
+      "visual-merchandising",
+      "sustainable-fashion",
+      "fabric-science",
+      "costume-design",
+      "fashion-communication",
+      "fashion-business-management",
+      "fashion-technology",
+      "jewelry-design",
+      "fashion-entrepreneurship",
+    ])
     .withMessage("Please select a valid department"),
 ];
 

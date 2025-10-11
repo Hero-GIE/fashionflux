@@ -76,8 +76,6 @@ app.listen(PORT, () => {
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
 });
 
-module.exports = app;
-
 // const express = require("express");
 // const mongoose = require("mongoose");
 // const cors = require("cors");
