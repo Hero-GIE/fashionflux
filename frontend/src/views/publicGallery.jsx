@@ -266,7 +266,7 @@ const PublicGallery = () => {
                   className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-2xl p-4 shadow-2xl hover:scale-110 transition-all duration-300 group"
                 >
                   <svg
-                    className="w-8 h-8 text-gray-600 group-hover:text-gray-400 transition-colors"
+                    className="w-8 h-8 text-gray-600 group-hover:text-purple-600 transition-colors"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -287,7 +287,7 @@ const PublicGallery = () => {
                   className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-2xl p-4 shadow-2xl hover:scale-110 transition-all duration-300 group"
                 >
                   <svg
-                    className="w-8 h-8 text-gray-600 group-hover:text-gray-400 transition-colors"
+                    className="w-8 h-8 text-gray-600 group-hover:text-purple-600 transition-colors"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
