@@ -16,6 +16,7 @@ const PublicGallery = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [heroImageIndex, setHeroImageIndex] = useState(0);
+  const [isImageZoomed, setIsImageZoomed] = useState(false);
   const navigate = useNavigate();
 
   const categories = [
@@ -87,15 +88,6 @@ const PublicGallery = () => {
       prev === 0 ? selectedProject.images.length - 1 : prev - 1
     );
   };
-  const scrollToProjects = () => {
-    const projectsSection = document.getElementById("projects-gallery");
-    if (projectsSection) {
-      projectsSection.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
-  };
 
   const handleNextImage = () => {
     setCurrentImageIndex((prev) =>
@@ -107,6 +99,7 @@ const PublicGallery = () => {
     setSelectedProject(project);
     setCurrentImageIndex(0);
     setShowProjectDialog(true);
+    setIsImageZoomed(false); // Reset zoom state when opening new project
   };
 
   const handleBackToLogin = () => {
@@ -124,6 +117,27 @@ const PublicGallery = () => {
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedCategory("all");
+  };
+
+  const handleImageClick = (e) => {
+    e.stopPropagation();
+    setIsImageZoomed(true);
+  };
+
+  const handleZoomClose = (e) => {
+    if (e.target === e.currentTarget) {
+      setIsImageZoomed(false);
+    }
+  };
+
+  const scrollToProjects = () => {
+    const projectsSection = document.getElementById("projects-gallery");
+    if (projectsSection) {
+      projectsSection.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -166,6 +180,27 @@ const PublicGallery = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Close zoom on Escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape" && isImageZoomed) {
+        setIsImageZoomed(false);
+      }
+    };
+
+    if (isImageZoomed) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "auto";
+    };
+  }, [isImageZoomed]);
+
   if (isInitialLoad) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 flex items-center justify-center">
@@ -193,12 +228,107 @@ const PublicGallery = () => {
         pauseOnHover
       />
 
+      {/* Zoomed Image Overlay */}
+      {isImageZoomed && selectedProject && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 backdrop-blur-lg animate-fadeIn"
+          onClick={handleZoomClose}
+        >
+          <div className="relative max-w-7xl max-h-[95vh] w-full h-full flex items-center justify-center p-4">
+            {/* Close button */}
+            <button
+              onClick={() => setIsImageZoomed(false)}
+              className="absolute top-4 right-4 z-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-3 transition-all duration-300 hover:scale-110 group"
+            >
+              <svg
+                className="w-8 h-8 text-white group-hover:text-gray-200 transition-colors"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+
+            {/* Navigation buttons */}
+            {selectedProject.images.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePreviousImage();
+                  }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-2xl p-4 shadow-2xl hover:scale-110 transition-all duration-300 group"
+                >
+                  <svg
+                    className="w-8 h-8 text-gray-600 group-hover:text-gray-400 transition-colors"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.5}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNextImage();
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-2xl p-4 shadow-2xl hover:scale-110 transition-all duration-300 group"
+                >
+                  <svg
+                    className="w-8 h-8 text-gray-600 group-hover:text-gray-400 transition-colors"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2.5}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              </>
+            )}
+
+            {/* Zoomed image */}
+            <img
+              src={selectedProject.images[currentImageIndex].url}
+              alt={selectedProject.title}
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-scaleIn cursor-zoom-out"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            {/* Image counter */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-sm text-white px-6 py-3 rounded-full text-lg font-semibold border border-white/20">
+              📸 {currentImageIndex + 1} / {selectedProject.images.length}
+            </div>
+
+            {/* Zoom controls hint */}
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-sm text-white px-6 py-2 rounded-full text-sm font-medium border border-white/20 opacity-80">
+              Click anywhere or press ESC to close
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Project Dialog */}
       {showProjectDialog && selectedProject && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-lg animate-fadeIn">
           <div className="bg-gradient-to-br from-white via-purple-50 to-blue-50 rounded-3xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden animate-scaleIn border border-white/20">
             {/* Header */}
-            {/* Header - Clean design without background */}
             <div className="bg-white p-6 border-b border-gray-100">
               <div className="flex items-start justify-between">
                 <div className="flex-1 pr-8">
@@ -243,20 +373,33 @@ const PublicGallery = () => {
                   {selectedProject.images.length > 0 ? (
                     <>
                       <div className="relative aspect-[4/3] overflow-hidden">
-                        <img
-                          src={selectedProject.images[currentImageIndex].url}
-                          alt={selectedProject.title}
-                          className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-                        />
+                        <div
+                          className="w-full h-full cursor-zoom-in"
+                          onClick={handleImageClick}
+                        >
+                          <img
+                            src={selectedProject.images[currentImageIndex].url}
+                            alt={selectedProject.title}
+                            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                          />
+                        </div>
 
                         {/* Gradient overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none"></div>
+
+                        {/* Zoom hint */}
+                        <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-full text-xs font-semibold border border-white/20 flex items-center gap-2 pointer-events-none">
+                          🔍 Click to zoom
+                        </div>
 
                         {selectedProject.images.length > 1 && (
                           <>
                             {/* Navigation Buttons */}
                             <button
-                              onClick={handlePreviousImage}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handlePreviousImage();
+                              }}
                               className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-2xl hover:bg-white hover:scale-110 transition-all duration-300 group"
                             >
                               <svg
@@ -274,7 +417,10 @@ const PublicGallery = () => {
                               </svg>
                             </button>
                             <button
-                              onClick={handleNextImage}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleNextImage();
+                              }}
                               className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-2xl hover:bg-white hover:scale-110 transition-all duration-300 group"
                             >
                               <svg
@@ -293,7 +439,7 @@ const PublicGallery = () => {
                             </button>
 
                             {/* Image Counter */}
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-semibold border border-white/20">
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-semibold border border-white/20 pointer-events-none">
                               📸 {currentImageIndex + 1} /{" "}
                               {selectedProject.images.length}
                             </div>
@@ -468,7 +614,7 @@ const PublicGallery = () => {
                           </div>
                           <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3">
                             <p className="text-xs font-semibold text-gray-500 mb-1">
-                              Department
+                              Course
                             </p>
                             <p className="text-sm font-bold text-gray-900">
                               {selectedProject.student.department}
@@ -661,7 +807,9 @@ const PublicGallery = () => {
               className="flex items-center space-x-3 bg-white/20 backdrop-blur-md px-5 py-3 rounded-full hover:bg-white/30 transition-all hover:scale-105 transform cursor-pointer"
             >
               <span className="text-2xl">🎨</span>
-              <span className="font-semibold">{projects.length} Projects</span>
+              <span className="font-semibold">
+                {projects.length} Fashion Gallery
+              </span>
             </button>
           </div>
 
@@ -817,33 +965,6 @@ const PublicGallery = () => {
                           </button>
                         </div>
                       </div>
-
-                      {/* <div className="p-6">
-                        <h3 className="text-xl font-bold text-gray-900 line-clamp-2 leading-tight group-hover:text-purple-700 transition-colors mb-2">
-                          {project.title}
-                        </h3>
-                        <p className="text-gray-600 line-clamp-2 text-sm leading-relaxed mb-4">
-                          {project.description}
-                        </p>
-
-                        {project.student && (
-                          <div className="flex items-center space-x-3 pt-4 border-t border-gray-100">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
-                              {project.student.firstName?.[0]}
-                              {project.student.lastName?.[0]}
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold text-gray-900">
-                                {project.student.firstName}{" "}
-                                {project.student.lastName}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {project.student.department}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div> */}
                     </div>
                   </div>
                 ))}

@@ -538,7 +538,7 @@ function LoginSignUp() {
                           htmlFor="department"
                           className="block text-sm font-medium text-gray-700 mb-2"
                         >
-                          Department
+                          Course
                         </label>
                         <select
                           id="department"
