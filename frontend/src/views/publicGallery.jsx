@@ -99,7 +99,7 @@ const PublicGallery = () => {
     setSelectedProject(project);
     setCurrentImageIndex(0);
     setShowProjectDialog(true);
-    setIsImageZoomed(false); // Reset zoom state when opening new project
+    setIsImageZoomed(false);
   };
 
   const handleBackToLogin = () => {
@@ -801,16 +801,32 @@ const PublicGallery = () => {
             Discover extraordinary fashion talent from KTU's brightest design
             students
           </p>
-          <div className="flex items-center justify-center space-x-6 text-lg animate-fadeIn">
+          <div className="flex flex-col items-center justify-center space-y-6 text-lg animate-fadeIn">
             <button
               onClick={scrollToProjects}
               className="flex items-center space-x-3 bg-white/20 backdrop-blur-md px-5 py-3 rounded-full hover:bg-white/30 transition-all hover:scale-105 transform cursor-pointer"
             >
-              <span className="text-2xl">🎨</span>
-              <span className="font-semibold">
-                {projects.length} Fashion Gallery
-              </span>
+              <span className="font-semibold">Fashion Gallery</span>
             </button>
+
+            {/* Scroll down indicator */}
+            <div className="flex flex-col items-center mt-4 animate-bounce">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-6 h-6 text-white opacity-70"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+              <span className="text-sm text-white/70">Scroll To Gallery</span>
+            </div>
           </div>
 
           {/* Image Indicators */}
