@@ -1,8 +1,9 @@
 // Automatically use localhost in development and production URL otherwise
 const backendDomain =
-  process.env.NODE_ENV === "development"
+  import.meta.env.VITE_BACKEND_URL ||
+  (process.env.NODE_ENV === "development"
     ? "http://localhost:8000"
-    : process.env.REACT_APP_BACKEND_URL;
+    : "https://fashionflux-vwrw.vercel.app");
 
 const SummaryApi = {
   studentSignUp: {
