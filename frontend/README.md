@@ -65,3 +65,19 @@ Open your browser and go to:
 http://localhost:5173/
 
 The frontend will now connect to the backend API running on port 8000.
+
+{
+"version": 2,
+"builds": [
+{
+"src": "index.js",
+"use": "@vercel/node"
+}
+],
+"routes": [
+{
+"src": "/(.*)",
+"dest": "/index.js"
+}
+]
+}
