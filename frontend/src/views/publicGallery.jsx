@@ -43,46 +43,6 @@ const PublicGallery = () => {
     loadPublicProjects();
   }, [searchTerm, selectedCategory]);
 
-  // const loadPublicProjects = async () => {
-  //   try {
-  //     setIsLoading(true);
-
-  //     const params = new URLSearchParams();
-  //     if (searchTerm) params.append("search", searchTerm);
-  //     if (selectedCategory !== "all")
-  //       params.append("category", selectedCategory);
-  //     params.append("page", "1");
-  //     params.append("limit", "50");
-
-  //     const queryString = params.toString();
-  //     const url = queryString
-  //       ? `${SummaryApi.getPublicProjects.url}?${queryString}`
-  //       : SummaryApi.getPublicProjects.url;
-
-  //     const response = await fetch(url, {
-  //       method: SummaryApi.getPublicProjects.method,
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
-
-  //     const data = await response.json();
-
-  //     if (data.success) {
-  //       setProjects(data.data.projects || []);
-  //     } else {
-  //       throw new Error(data.message || "Failed to load projects");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error loading public projects:", error);
-  //     toast.error("Failed to load projects gallery");
-  //     setProjects([]);
-  //   } finally {
-  //     setIsLoading(false);
-  //     setIsInitialLoad(false);
-  //   }
-  // };
-
   const loadPublicProjects = async () => {
     try {
       setIsLoading(true);
@@ -95,15 +55,12 @@ const PublicGallery = () => {
       params.append("limit", "50");
 
       const queryString = params.toString();
-      const backendUrl =
-        "https://fashionflux-vwrw.vercel.app/api/public/projects";
-
-      const url = queryString ? `${backendUrl}?${queryString}` : backendUrl;
-
-      console.log("📡 Fetching public projects from:", url);
+      const url = queryString
+        ? `${SummaryApi.getPublicProjects.url}?${queryString}`
+        : SummaryApi.getPublicProjects.url;
 
       const response = await fetch(url, {
-        method: "GET",
+        method: SummaryApi.getPublicProjects.method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -117,7 +74,7 @@ const PublicGallery = () => {
         throw new Error(data.message || "Failed to load projects");
       }
     } catch (error) {
-      console.error("❌ Error loading public projects:", error);
+      console.error("Error loading public projects:", error);
       toast.error("Failed to load projects gallery");
       setProjects([]);
     } finally {
@@ -125,6 +82,49 @@ const PublicGallery = () => {
       setIsInitialLoad(false);
     }
   };
+
+  // const loadPublicProjects = async () => {
+  //   try {
+  //     setIsLoading(true);
+
+  //     const params = new URLSearchParams();
+  //     if (searchTerm) params.append("search", searchTerm);
+  //     if (selectedCategory !== "all")
+  //       params.append("category", selectedCategory);
+  //     params.append("page", "1");
+  //     params.append("limit", "50");
+
+  //     const queryString = params.toString();
+  //     const backendUrl =
+  //       "https://fashionflux-vwrw.vercel.app/api/public/projects";
+
+  //     const url = queryString ? `${backendUrl}?${queryString}` : backendUrl;
+
+  //     console.log("📡 Fetching public projects from:", url);
+
+  //     const response = await fetch(url, {
+  //       method: "GET",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (data.success) {
+  //       setProjects(data.data.projects || []);
+  //     } else {
+  //       throw new Error(data.message || "Failed to load projects");
+  //     }
+  //   } catch (error) {
+  //     console.error("❌ Error loading public projects:", error);
+  //     toast.error("Failed to load projects gallery");
+  //     setProjects([]);
+  //   } finally {
+  //     setIsLoading(false);
+  //     setIsInitialLoad(false);
+  //   }
+  // };
 
   const handlePreviousImage = () => {
     setCurrentImageIndex((prev) =>
