@@ -1,4 +1,3 @@
-// server.js or index.js
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -7,15 +6,17 @@ require("dotenv").config();
 
 const app = express();
 
+// ✅ Proper CORS setup (only one call)
 app.use(
   cors({
     origin: ["https://fashionflux-sage.vercel.app", "http://localhost:3000"],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
 // Middleware
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -35,7 +36,6 @@ app.use("/api", require("./routes/route"));
 app.use((err, req, res, next) => {
   console.error("Error:", err);
 
-  // Multer file size error
   if (err.code === "LIMIT_FILE_SIZE") {
     return res.status(400).json({
       success: false,
@@ -43,7 +43,6 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // Multer file type error
   if (err.message === "Only image files are allowed") {
     return res.status(400).json({
       success: false,
@@ -51,7 +50,6 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // Generic error
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Internal server error",
