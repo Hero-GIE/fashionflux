@@ -314,7 +314,7 @@ exports.getAllProjects = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit))
-      .maxTimeMS(30000); // 30 second timeout
+      .maxTimeMS(60000); // 30 second timeout
 
     // Get total count for pagination with timeout
     const total = await Project.countDocuments(filter).maxTimeMS(30000);
