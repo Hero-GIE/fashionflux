@@ -6,18 +6,15 @@ require("dotenv").config();
 
 const app = express();
 
-// ✅ CORS Middleware - MUST be first
+// ✅ Proper CORS setup
 app.use(
   cors({
     origin: ["https://fashionflux-sage.vercel.app", "http://localhost:3000"],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-
-// ✅ Handle preflight requests explicitly
-app.options("*", cors());
 
 // Middleware
 app.use(express.json());
@@ -28,30 +25,21 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Request logging middleware
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+  console.log(`${req.method} ${req.path}`);
   next();
 });
 
 // Routes
 app.use("/api", require("./routes/route"));
 
-// ✅ Health check endpoint (test if server is responding)
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Server is running",
-    timestamp: new Date().toISOString(),
-  });
-});
-
 // ✅ MongoDB connection with Vercel optimizations
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 30000,
-    socketTimeoutMS: 45000,
-    bufferCommands: false,
+    serverSelectionTimeoutMS: 30000, // 30 seconds
+    socketTimeoutMS: 45000, // 45 seconds
+    bufferCommands: false, // Important for serverless
     maxPoolSize: 10,
     minPoolSize: 1,
   })
