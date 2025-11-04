@@ -128,7 +128,6 @@ exports.createProject = async (req, res) => {
 };
 
 // Get Student Projects
-// Get Student Projects
 exports.getStudentProjects = async (req, res) => {
   try {
     const studentId = req.user.id;
