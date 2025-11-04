@@ -12,7 +12,7 @@ const corsOptions = {
     const allowedOrigins = [
       "https://fashionflux-sage.vercel.app",
       "http://localhost:3000",
-      "http://localhost:5173", // Add Vite dev server if needed
+      "http://localhost:5173",
     ];
 
     // Allow requests with no origin (like mobile apps or curl requests)
@@ -31,11 +31,11 @@ const corsOptions = {
   optionsSuccessStatus: 200,
 };
 
-// Apply CORS to all routes
+// Apply CORS to all routes - THIS HANDLES OPTIONS AUTOMATICALLY
 app.use(cors(corsOptions));
 
-// Handle preflight requests globally
-app.options("*", cors(corsOptions));
+// ❌ REMOVE THIS PROBLEMATIC LINE - it's causing the PathError
+// app.options("*", cors(corsOptions));
 
 // Middleware
 app.use(express.json({ limit: "50mb" }));
@@ -47,7 +47,6 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // Enhanced request logging middleware
 app.use((req, res, next) => {
   console.log(`🌐 ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
-  console.log(`📋 Headers:`, req.headers);
   next();
 });
 
@@ -74,6 +73,30 @@ app.get("/", (req, res) => {
   });
 });
 
+// ✅ Manual OPTIONS handler for specific routes if needed
+app.options("/api/*", (req, res) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    "https://fashionflux-sage.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
+  ];
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-Requested-With"
+  );
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.status(200).send();
+});
+
 // ✅ MongoDB connection with enhanced Vercel optimizations
 const connectDB = async () => {
   try {
@@ -89,7 +112,7 @@ const connectDB = async () => {
       maxPoolSize: 10,
       minPoolSize: 1,
       maxIdleTimeMS: 30000,
-      family: 4, // Use IPv4, skip IPv6
+      family: 4,
     });
 
     console.log("✅ MongoDB connected successfully");
@@ -171,7 +194,6 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📁 Upload directory: ${path.join(__dirname, "uploads")}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`🔗 Allowed origins:`, corsOptions.origin);
 });
 
 module.exports = app;
