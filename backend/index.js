@@ -16,9 +16,6 @@ app.use(
   })
 );
 
-// ✅ Handle preflight requests explicitly
-app.options("*", cors());
-
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -35,7 +32,7 @@ app.use((req, res, next) => {
 // Routes
 app.use("/api", require("./routes/route"));
 
-// ✅ Health check endpoint (test if server is responding)
+// ✅ Health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({
     success: true,
