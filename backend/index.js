@@ -83,13 +83,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: `Route ${req.method} ${req.path} not found`,
-  });
-});
+// // 404 handler
+// app.use((req, res) => {
+//   res.status(404).json({
+//     success: false,
+//     message: `Route ${req.method} ${req.path} not found`,
+//   });
+// });
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
