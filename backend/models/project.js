@@ -70,7 +70,9 @@ const projectSchema = new mongoose.Schema(
 );
 
 // Index for better query performance
-projectSchema.index({ student: 1, createdAt: -1 });
-projectSchema.index({ status: 1 });
+projectSchema.index({ status: 1, createdAt: -1 });
+projectSchema.index({ status: 1, category: 1 });
+projectSchema.index({ title: "text", description: "text" });
+projectSchema.index({ student: 1, status: 1 });
 
 module.exports = mongoose.model("Project", projectSchema);

@@ -160,7 +160,6 @@ exports.getStudentProjects = async (req, res) => {
 };
 
 // Get Single Project
-// Get Single Project
 exports.getProject = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -277,16 +276,16 @@ exports.updateProject = async (req, res) => {
   }
 };
 
-// controllers/student/projectController.js
-
 // Get All Approved Projects (Public Route)
 exports.getAllProjects = async (req, res) => {
   try {
-    const { category, search, page = 1, limit = 50 } = req.query;
+    const { category, search, page = 1, limit = 5 } = req.query; // Reduced default limit
 
     console.log("📋 Fetching public projects with filters:", {
       category,
       search,
+      page,
+      limit,
     });
 
     // Build filter for approved projects only
@@ -309,14 +308,16 @@ exports.getAllProjects = async (req, res) => {
 
     console.log("🔍 Database filter:", filter);
 
+    // Add timeout to the query
     const projects = await Project.find(filter)
-      .populate("student", "firstName lastName studentId department profile") // ADDED 'profile' here
+      .populate("student", "firstName lastName studentId department profile")
       .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit))
+      .maxTimeMS(30000); // 30 second timeout
 
-    // Get total count for pagination
-    const total = await Project.countDocuments(filter);
+    // Get total count for pagination with timeout
+    const total = await Project.countDocuments(filter).maxTimeMS(30000);
 
     console.log(`✅ Found ${projects.length} projects out of ${total} total`);
 
@@ -333,6 +334,19 @@ exports.getAllProjects = async (req, res) => {
     });
   } catch (error) {
     console.error("❌ Get all projects error:", error);
+
+    // Handle timeout errors specifically
+    if (
+      error.name === "MongoServerSelectionError" ||
+      error.name === "MongoTimeoutError"
+    ) {
+      return res.status(503).json({
+        success: false,
+        message: "Database connection timeout. Please try again.",
+        error: error.message,
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -340,7 +354,6 @@ exports.getAllProjects = async (req, res) => {
     });
   }
 };
-
 // Get Project Categories (Public Route)
 exports.getProjectCategories = async (req, res) => {
   try {

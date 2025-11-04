@@ -6,7 +6,7 @@ require("dotenv").config();
 
 const app = express();
 
-// ✅ Proper CORS setup (only one call)
+// ✅ Proper CORS setup
 app.use(
   cors({
     origin: ["https://fashionflux-sage.vercel.app", "http://localhost:3000"],
@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from uploads directory
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Request logging middleware (for debugging)
+// Request logging middleware
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`);
   next();
@@ -31,6 +31,23 @@ app.use((req, res, next) => {
 
 // Routes
 app.use("/api", require("./routes/route"));
+
+// ✅ MongoDB connection with Vercel optimizations
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 30000, // 30 seconds
+    socketTimeoutMS: 45000, // 45 seconds
+    bufferCommands: false, // Important for serverless
+    maxPoolSize: 10,
+    minPoolSize: 1,
+  })
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => {
+    console.log("❌ MongoDB connection error:", err);
+    process.exit(1);
+  });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -64,15 +81,6 @@ app.use((req, res) => {
     message: `Route ${req.method} ${req.path} not found`,
   });
 });
-
-// MongoDB connection
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.log("❌ MongoDB connection error:", err));
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
