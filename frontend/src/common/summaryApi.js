@@ -1,6 +1,6 @@
 // Automatically use localhost in development and production URL otherwise
 const backendDomain =
-  import.meta.env.VITE_BACKEND_URL ||
+  import.meta.env.VITE_BACKEND_URL?.replace(/\/$/, "") ||
   (process.env.NODE_ENV === "development"
     ? "http://localhost:8000"
     : "https://fashionflux-vwrw.vercel.app");
