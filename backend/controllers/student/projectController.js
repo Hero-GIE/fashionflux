@@ -275,10 +275,9 @@ exports.updateProject = async (req, res) => {
   }
 };
 
-// Get All Approved Projects (Public Route)
 exports.getAllProjects = async (req, res) => {
   try {
-    const { category, search, page = 1, limit = 5 } = req.query; // Reduced default limit
+    const { category, search, page = 1, limit = 10 } = req.query; // Reduced default limit
 
     console.log("📋 Fetching public projects with filters:", {
       category,
@@ -286,6 +285,14 @@ exports.getAllProjects = async (req, res) => {
       page,
       limit,
     });
+
+    // Check MongoDB connection first
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        success: false,
+        message: "Database not connected. Please try again.",
+      });
+    }
 
     // Build filter for approved projects only
     const filter = { status: "approved" };
@@ -307,16 +314,17 @@ exports.getAllProjects = async (req, res) => {
 
     console.log("🔍 Database filter:", filter);
 
-    // Add timeout to the query
-    const projects = await Project.find(filter)
-      .populate("student", "firstName lastName studentId department profile")
-      .sort({ createdAt: -1 })
-      .limit(parseInt(limit))
-      .skip((parseInt(page) - 1) * parseInt(limit))
-      .maxTimeMS(60000); // 30 second timeout
+    // Execute queries with timeouts
+    const [projects, total] = await Promise.all([
+      Project.find(filter)
+        .populate("student", "firstName lastName studentId department profile")
+        .sort({ createdAt: -1 })
+        .limit(parseInt(limit))
+        .skip((parseInt(page) - 1) * parseInt(limit))
+        .maxTimeMS(30000), // 30 second timeout
 
-    // Get total count for pagination with timeout
-    const total = await Project.countDocuments(filter).maxTimeMS(30000);
+      Project.countDocuments(filter).maxTimeMS(30000),
+    ]);
 
     console.log(`✅ Found ${projects.length} projects out of ${total} total`);
 
@@ -334,7 +342,7 @@ exports.getAllProjects = async (req, res) => {
   } catch (error) {
     console.error("❌ Get all projects error:", error);
 
-    // Handle timeout errors specifically
+    // Handle specific MongoDB errors
     if (
       error.name === "MongoServerSelectionError" ||
       error.name === "MongoTimeoutError"
@@ -353,6 +361,7 @@ exports.getAllProjects = async (req, res) => {
     });
   }
 };
+
 // Get Project Categories (Public Route)
 exports.getProjectCategories = async (req, res) => {
   try {
