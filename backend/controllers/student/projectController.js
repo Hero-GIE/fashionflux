@@ -3,6 +3,8 @@ const Project = require("../../models/project");
 const path = require("path");
 const fileUploadService = require("../../service/fileUploadService");
 const fs = require("fs").promises;
+// At the top of projectController.js, add:
+const mongoose = require("mongoose");
 
 // Create New Project
 exports.createProject = async (req, res) => {
