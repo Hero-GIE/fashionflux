@@ -32,6 +32,7 @@ const AdminDashboard = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [deleteType, setDeleteType] = useState("");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   // Add these state variables with your existing states
   const [allStudents, setAllStudents] = useState([]);
   const [allProjects, setAllProjects] = useState([]);
@@ -127,11 +128,20 @@ const AdminDashboard = () => {
     // Load your admin data here
   }, []);
 
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = "/";
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      // Add a small delay for better UX
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      localStorage.clear();
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout error:", error);
+      setIsLoggingOut(false); // Reset loading state on error
+      setShowLogoutDialog(false); // Close dialog on error
+      toast.error("Logout failed");
+    }
   };
-
   // In your AdminDashboard component, replace the delete functions with these:
 
   const deleteStudent = async (studentId) => {
@@ -468,7 +478,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Add these functions with your existing load functions
   const loadAnalytics = async () => {
     try {
       const token = localStorage.getItem("authToken");
@@ -513,7 +522,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Update the refresh button to only refresh current tab data
   // Update the refresh function
   const handleRefresh = () => {
     if (activeTab === "students") {
@@ -616,6 +624,7 @@ const AdminDashboard = () => {
         isOpen={showLogoutDialog}
         onClose={() => setShowLogoutDialog(false)}
         onConfirm={handleLogout}
+        isLoading={isLoggingOut}
       />
       <DeleteConfirmationDialog
         isOpen={showDeleteDialog}
@@ -1598,187 +1607,202 @@ const AdminDashboard = () => {
 
                 {/* Students Table */}
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Student
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Student ID
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Department
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Email
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Registered
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {studentsLoading ? (
-                          // Enhanced loading state with skeleton rows
-                          <>
-                            {[...Array(2)].map((_, index) => (
-                              <tr key={index} className="animate-pulse">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="flex items-center">
-                                    <div className="w-10 h-10 bg-gray-200 rounded-full mr-3"></div>
-                                    <div>
-                                      <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                  <div className="max-h-[calc(8*68px)] overflow-y-auto scrollbar-thin">
+                    {" "}
+                    {/* Moved scroll container here */}
+                    <div className="overflow-x-auto min-w-full">
+                      {" "}
+                      {/* Added min-w-full to preserve horizontal scroll */}
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Student
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Student ID
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Department
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Email
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Status
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Registered
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {studentsLoading ? (
+                            // Enhanced loading state with skeleton rows
+                            <>
+                              {[...Array(2)].map((_, index) => (
+                                <tr key={index} className="animate-pulse">
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex items-center">
+                                      <div className="w-10 h-10 bg-gray-200 rounded-full mr-3"></div>
+                                      <div>
+                                        <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="h-4 bg-gray-200 rounded w-16"></div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="h-6 bg-gray-200 rounded w-20"></div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="h-4 bg-gray-200 rounded w-32"></div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="h-6 bg-gray-200 rounded w-16"></div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="h-4 bg-gray-200 rounded w-20"></div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="h-6 bg-gray-200 rounded w-12"></div>
+                                  </td>
+                                </tr>
+                              ))}
+                              {/* Loading indicator row */}
+                              <tr>
+                                <td
+                                  colSpan="7"
+                                  className="px-6 py-8 text-center"
+                                >
+                                  <div className="flex flex-col items-center justify-center space-y-3">
+                                    <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                                    <div className="text-md font-semibold text-gray-700">
+                                      Loading Students...
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      Please wait while we fetch the student
+                                      data
                                     </div>
                                   </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="h-4 bg-gray-200 rounded w-16"></div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="h-6 bg-gray-200 rounded w-20"></div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="h-4 bg-gray-200 rounded w-32"></div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="h-6 bg-gray-200 rounded w-16"></div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="h-4 bg-gray-200 rounded w-20"></div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="h-6 bg-gray-200 rounded w-12"></div>
                                 </td>
                               </tr>
-                            ))}
-                            {/* Loading indicator row */}
+                            </>
+                          ) : allStudents.length === 0 ? (
                             <tr>
-                              <td colSpan="7" className="px-6 py-8 text-center">
-                                <div className="flex flex-col items-center justify-center space-y-3">
-                                  <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                                  <div className="text-md font-semibold text-gray-700">
-                                    Loading Students...
+                              <td
+                                colSpan="7"
+                                className="px-6 py-12 text-center"
+                              >
+                                <div className="flex flex-col items-center justify-center space-y-4">
+                                  <div className="text-6xl">👥</div>
+                                  <div className="text-lg font-semibold text-gray-900">
+                                    No Students Found
                                   </div>
-                                  <div className="text-sm text-gray-500">
-                                    Please wait while we fetch the student data
+                                  <div className="text-gray-600 max-w-md">
+                                    There are no students registered in the
+                                    system yet. Students will appear here once
+                                    they sign up.
                                   </div>
                                 </div>
                               </td>
                             </tr>
-                          </>
-                        ) : allStudents.length === 0 ? (
-                          <tr>
-                            <td colSpan="7" className="px-6 py-12 text-center">
-                              <div className="flex flex-col items-center justify-center space-y-4">
-                                <div className="text-6xl">👥</div>
-                                <div className="text-lg font-semibold text-gray-900">
-                                  No Students Found
-                                </div>
-                                <div className="text-gray-600 max-w-md">
-                                  There are no students registered in the system
-                                  yet. Students will appear here once they sign
-                                  up.
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        ) : (
-                          allStudents.map((student) => (
-                            <tr
-                              key={student._id}
-                              className="hover:bg-gray-50 transition-colors"
-                            >
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                  <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
-                                    {student.firstName?.[0]}
-                                    {student.lastName?.[0]}
-                                  </div>
-                                  <div>
-                                    <div className="text-sm font-medium text-gray-900">
-                                      {student.firstName} {student.lastName}
+                          ) : (
+                            allStudents.map((student) => (
+                              <tr
+                                key={student._id}
+                                className="hover:bg-gray-50 transition-colors"
+                              >
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="flex items-center">
+                                    <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
+                                      {student.firstName?.[0]}
+                                      {student.lastName?.[0]}
+                                    </div>
+                                    <div>
+                                      <div className="text-sm font-medium text-gray-900">
+                                        {student.firstName} {student.lastName}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900 font-mono">
-                                  {student.studentId}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span
-                                  className={`px-2 py-1 text-xs font-semibold rounded-full ${getDepartmentColor(
-                                    student.department
-                                  )} text-white`}
-                                >
-                                  {student.department}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {student.email}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span
-                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                    student.isApproved
-                                      ? "bg-green-100 text-green-800"
-                                      : "bg-amber-100 text-amber-800"
-                                  }`}
-                                >
-                                  {student.isApproved
-                                    ? "✅ Approved"
-                                    : "⏳ Pending"}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {new Date(
-                                  student.createdAt
-                                ).toLocaleDateString()}
-                              </td>
-
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                <button
-                                  onClick={() => {
-                                    setSelectedStudent(student);
-                                    setShowStudentDialog(true);
-                                  }}
-                                  className="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition"
-                                  title="View Project"
-                                >
-                                  <AiFillEye size={20} />
-                                </button>
-                                {!student.isApproved && (
-                                  <button
-                                    onClick={() => approveStudent(student._id)}
-                                    className="text-green-600 hover:text-green-900 font-semibold"
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="text-sm text-gray-900 font-mono">
+                                    {student.studentId}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span
+                                    className={`px-2 py-1 text-xs font-semibold rounded-full ${getDepartmentColor(
+                                      student.department
+                                    )} text-white`}
                                   >
-                                    Approve
+                                    {student.department}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {student.email}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span
+                                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                      student.isApproved
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-amber-100 text-amber-800"
+                                    }`}
+                                  >
+                                    {student.isApproved
+                                      ? "✅ Approved"
+                                      : "⏳ Pending"}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {new Date(
+                                    student.createdAt
+                                  ).toLocaleDateString()}
+                                </td>
+
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedStudent(student);
+                                      setShowStudentDialog(true);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition"
+                                    title="View Project"
+                                  >
+                                    <AiFillEye size={20} />
                                   </button>
-                                )}
-                                <button
-                                  onClick={() =>
-                                    handleDeleteClick(student, "student")
-                                  }
-                                  className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition"
-                                  title="Delete Project"
-                                >
-                                  <AiFillDelete size={20} />
-                                </button>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
+                                  {!student.isApproved && (
+                                    <button
+                                      onClick={() =>
+                                        approveStudent(student._id)
+                                      }
+                                      className="text-green-600 hover:text-green-900 font-semibold"
+                                    >
+                                      Approve
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() =>
+                                      handleDeleteClick(student, "student")
+                                    }
+                                    className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition"
+                                    title="Delete Project"
+                                  >
+                                    <AiFillDelete size={20} />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
 
@@ -1846,228 +1870,239 @@ const AdminDashboard = () => {
 
                 {/* Projects Table */}
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Project
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Student
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Category
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Submitted
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Reviewed
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {projectsLoading ? (
-                          // Enhanced loading state with skeleton rows
-                          <>
-                            {[...Array(2)].map((_, index) => (
-                              <tr key={index} className="animate-pulse">
-                                <td className="px-6 py-4">
-                                  <div className="flex items-center">
-                                    <div className="w-12 h-12 bg-gray-200 rounded-lg mr-3"></div>
-                                    <div className="flex-1">
-                                      <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
-                                      <div className="h-3 bg-gray-200 rounded w-48"></div>
+                  <div className="max-h-[calc(8*68px)] overflow-y-auto scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-gray-100 scrollbar-thumb-rounded-full hover:scrollbar-thumb-purple-400 transition-colors">
+                    <div className="overflow-x-auto min-w-full">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Project
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Student
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Category
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Status
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Submitted
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Reviewed
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50 z-10">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {projectsLoading ? (
+                            // Enhanced loading state with skeleton rows
+                            <>
+                              {[...Array(2)].map((_, index) => (
+                                <tr key={index} className="animate-pulse">
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center">
+                                      <div className="w-12 h-12 bg-gray-200 rounded-lg mr-3"></div>
+                                      <div className="flex-1">
+                                        <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+                                        <div className="h-3 bg-gray-200 rounded w-48"></div>
+                                      </div>
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="h-4 bg-gray-200 rounded w-20 mb-1"></div>
+                                    <div className="h-3 bg-gray-200 rounded w-12"></div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="h-6 bg-gray-200 rounded w-16"></div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="h-6 bg-gray-200 rounded w-20"></div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="h-4 bg-gray-200 rounded w-16"></div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="h-4 bg-gray-200 rounded w-16"></div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="h-6 bg-gray-200 rounded w-24"></div>
+                                  </td>
+                                </tr>
+                              ))}
+                              {/* Loading indicator row */}
+                              <tr>
+                                <td
+                                  colSpan="7"
+                                  className="px-6 py-8 text-center"
+                                >
+                                  <div className="flex flex-col items-center justify-center space-y-3">
+                                    <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                                    <div className="text-md font-semibold text-gray-700">
+                                      Loading Projects...
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                      Please wait while we fetch the project
+                                      data
                                     </div>
                                   </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="h-4 bg-gray-200 rounded w-20 mb-1"></div>
-                                  <div className="h-3 bg-gray-200 rounded w-12"></div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="h-6 bg-gray-200 rounded w-16"></div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="h-6 bg-gray-200 rounded w-20"></div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="h-4 bg-gray-200 rounded w-16"></div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="h-4 bg-gray-200 rounded w-16"></div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                  <div className="h-6 bg-gray-200 rounded w-24"></div>
                                 </td>
                               </tr>
-                            ))}
-                            {/* Loading indicator row */}
+                            </>
+                          ) : allProjects.length === 0 ? (
                             <tr>
-                              <td colSpan="7" className="px-6 py-8 text-center">
-                                <div className="flex flex-col items-center justify-center space-y-3">
-                                  <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-                                  <div className="text-md font-semibold text-gray-700">
-                                    Loading Projects...
-                                  </div>
-                                  <div className="text-sm text-gray-500">
-                                    Please wait while we fetch the project data
-                                  </div>
+                              <td
+                                colSpan="7"
+                                className="px-6 py-10 text-center"
+                              >
+                                <div className="flex flex-col items-center justify-center space-y-3 text-gray-500">
+                                  <span className="text-5xl">📂</span>
+                                  <p className="text-lg font-semibold text-gray-700">
+                                    No Projects Found
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    There are currently no submitted projects.
+                                  </p>
+                                  <button
+                                    onClick={handleRefresh}
+                                    className="mt-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all"
+                                  >
+                                    Refresh
+                                  </button>
                                 </div>
                               </td>
                             </tr>
-                          </>
-                        ) : allProjects.length === 0 ? (
-                          <tr>
-                            <td colSpan="7" className="px-6 py-10 text-center">
-                              <div className="flex flex-col items-center justify-center space-y-3 text-gray-500">
-                                <span className="text-5xl">📂</span>
-                                <p className="text-lg font-semibold text-gray-700">
-                                  No Projects Found
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  There are currently no submitted projects.
-                                </p>
-                                <button
-                                  onClick={handleRefresh}
-                                  className="mt-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all"
-                                >
-                                  Refresh
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ) : (
-                          allProjects.map((project) => (
-                            <tr
-                              key={project._id}
-                              className="hover:bg-gray-50 transition-colors"
-                            >
-                              <td className="px-6 py-4">
-                                <div className="flex items-center">
-                                  {project.images.length > 0 ? (
-                                    <img
-                                      src={project.images[0].url}
-                                      alt={project.title}
-                                      className="w-12 h-12 rounded-lg object-cover mr-3"
-                                    />
-                                  ) : (
-                                    <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
-                                      <span className="text-gray-400">🎨</span>
-                                    </div>
-                                  )}
-                                  <div>
-                                    <div className="text-sm font-medium text-gray-900 line-clamp-1">
-                                      {project.title}
-                                    </div>
-                                    <div className="text-xs text-gray-500 line-clamp-2 max-w-xs">
-                                      {project.description}
+                          ) : (
+                            allProjects.map((project) => (
+                              <tr
+                                key={project._id}
+                                className="hover:bg-gray-50 transition-colors"
+                              >
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center">
+                                    {project.images.length > 0 ? (
+                                      <img
+                                        src={project.images[0].url}
+                                        alt={project.title}
+                                        className="w-12 h-12 rounded-lg object-cover mr-3"
+                                      />
+                                    ) : (
+                                      <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center mr-3">
+                                        <span className="text-gray-400">
+                                          🎨
+                                        </span>
+                                      </div>
+                                    )}
+                                    <div>
+                                      <div className="text-sm font-medium text-gray-900 line-clamp-1">
+                                        {project.title}
+                                      </div>
+                                      <div className="text-xs text-gray-500 line-clamp-2 max-w-xs">
+                                        {project.description}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">
-                                  {project.student?.firstName}{" "}
-                                  {project.student?.lastName}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {project.student?.studentId}
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-800 rounded-full">
-                                  {project.category}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span
-                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                    project.status === "approved"
-                                      ? "bg-green-100 text-green-800"
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="text-sm text-gray-900">
+                                    {project.student?.firstName}{" "}
+                                    {project.student?.lastName}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {project.student?.studentId}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-800 rounded-full">
+                                    {project.category}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span
+                                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                      project.status === "approved"
+                                        ? "bg-green-100 text-green-800"
+                                        : project.status === "rejected"
+                                        ? "bg-red-100 text-red-800"
+                                        : "bg-amber-100 text-amber-800"
+                                    }`}
+                                  >
+                                    {project.status === "approved"
+                                      ? "✅ Approved"
                                       : project.status === "rejected"
-                                      ? "bg-red-100 text-red-800"
-                                      : "bg-amber-100 text-amber-800"
-                                  }`}
-                                >
-                                  {project.status === "approved"
-                                    ? "✅ Approved"
-                                    : project.status === "rejected"
-                                    ? "❌ Rejected"
-                                    : "⏳ Pending"}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {new Date(
-                                  project.createdAt
-                                ).toLocaleDateString()}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {project.reviewedAt
-                                  ? new Date(
-                                      project.reviewedAt
-                                    ).toLocaleDateString()
-                                  : "-"}
-                              </td>
+                                      ? "❌ Rejected"
+                                      : "⏳ Pending"}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {new Date(
+                                    project.createdAt
+                                  ).toLocaleDateString()}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {project.reviewedAt
+                                    ? new Date(
+                                        project.reviewedAt
+                                      ).toLocaleDateString()
+                                    : "-"}
+                                </td>
 
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                <button
-                                  onClick={() => {
-                                    setSelectedProject(project);
-                                    setShowProjectModal(true);
-                                  }}
-                                  className="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition"
-                                  title="View Project"
-                                >
-                                  <AiFillEye size={20} />
-                                </button>
-                                {project.status === "pending" && (
-                                  <>
-                                    <button
-                                      onClick={() =>
-                                        approveProject(project._id)
-                                      }
-                                      className="text-green-600 hover:text-green-800 p-2 rounded-lg hover:bg-green-50 transition"
-                                      title="Approve Project"
-                                    >
-                                      <AiFillCheckCircle size={20} />
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        rejectProject(
-                                          project._id,
-                                          "Does not meet guidelines"
-                                        )
-                                      }
-                                      className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition"
-                                      title="Reject Project"
-                                    >
-                                      <AiFillCloseCircle size={20} />
-                                    </button>
-                                  </>
-                                )}
-                                <button
-                                  onClick={() =>
-                                    handleDeleteClick(project, "project")
-                                  }
-                                  className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition"
-                                  title="Delete Project"
-                                >
-                                  <AiFillDelete size={20} />
-                                </button>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedProject(project);
+                                      setShowProjectModal(true);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-800 p-2 rounded-lg hover:bg-blue-50 transition"
+                                    title="View Project"
+                                  >
+                                    <AiFillEye size={20} />
+                                  </button>
+                                  {project.status === "pending" && (
+                                    <>
+                                      <button
+                                        onClick={() =>
+                                          approveProject(project._id)
+                                        }
+                                        className="text-green-600 hover:text-green-800 p-2 rounded-lg hover:bg-green-50 transition"
+                                        title="Approve Project"
+                                      >
+                                        <AiFillCheckCircle size={20} />
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          rejectProject(
+                                            project._id,
+                                            "Does not meet guidelines"
+                                          )
+                                        }
+                                        className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition"
+                                        title="Reject Project"
+                                      >
+                                        <AiFillCloseCircle size={20} />
+                                      </button>
+                                    </>
+                                  )}
+                                  <button
+                                    onClick={() =>
+                                      handleDeleteClick(project, "project")
+                                    }
+                                    className="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition"
+                                    title="Delete Project"
+                                  >
+                                    <AiFillDelete size={20} />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
 

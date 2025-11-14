@@ -15,6 +15,7 @@ const StudentDashboard = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [profileData, setProfileData] = useState({
     bio: "",
     skills: "",
@@ -315,10 +316,18 @@ const StudentDashboard = () => {
       toast.error("Failed to load projects");
     }
   };
-
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = "/";
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      localStorage.clear();
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout error:", error);
+      setIsLoggingOut(false);
+      setShowLogoutDialog(false);
+      toast.error("Logout failed");
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -382,11 +391,13 @@ const StudentDashboard = () => {
           background: "linear-gradient(to right, #8b5cf6, #7c3aed)",
         }}
       />
+
       {/* Logout Confirmation Dialog */}
       <LogoutDialog
         isOpen={showLogoutDialog}
         onClose={() => setShowLogoutDialog(false)}
         onConfirm={handleLogout}
+        isLoading={isLoggingOut}
       />
 
       <ProjectViewDialog
