@@ -29,10 +29,12 @@ const userSchema = new mongoose.Schema({
     enum: ["student", "admin"],
     required: true,
   },
+
+  // FIXED: removed sparse here
   studentId: {
     type: String,
-    sparse: true, // Allows null values but ensures uniqueness for non-null values
   },
+
   department: {
     type: String,
     enum: [
@@ -59,46 +61,26 @@ const userSchema = new mongoose.Schema({
     ],
     default: "",
   },
+
   isApproved: {
     type: Boolean,
     default: false,
   },
-  // ADD PROFILE FIELD
+
+  // PROFILE OBJECT
   profile: {
-    bio: {
-      type: String,
-      default: "",
-    },
-    skills: {
-      type: String,
-      default: "",
-    },
-    specialization: {
-      type: String,
-      default: "",
-    },
-    contactEmail: {
-      type: String,
-      default: "",
-    },
-    portfolioUrl: {
-      type: String,
-      default: "",
-    },
+    bio: { type: String, default: "" },
+    skills: { type: String, default: "" },
+    specialization: { type: String, default: "" },
+    contactEmail: { type: String, default: "" },
+    portfolioUrl: { type: String, default: "" },
+
     socialLinks: {
-      instagram: {
-        type: String,
-        default: "",
-      },
-      linkedin: {
-        type: String,
-        default: "",
-      },
-      behance: {
-        type: String,
-        default: "",
-      },
+      instagram: { type: String, default: "" },
+      linkedin: { type: String, default: "" },
+      behance: { type: String, default: "" },
     },
+
     updatedAt: {
       type: Date,
       default: Date.now,
@@ -111,7 +93,7 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// Index for studentId to ensure uniqueness
+// ✔ Single clean index (no duplicate warning)
 userSchema.index({ studentId: 1 }, { unique: true, sparse: true });
 
 // Hash password before saving
@@ -127,12 +109,12 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-// Compare password method
+// Compare password
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Remove password from JSON output
+// Hide password from JSON output
 userSchema.methods.toJSON = function () {
   const user = this.toObject();
   delete user.password;
